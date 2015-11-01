@@ -1,0 +1,46 @@
+<script src="/ajax/libs/jquery/2.1.4/jquery.min.js" charset="utf-8"></script>
+<script src="/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io();
+
+  socket.on('newJob', function(msg){
+    console.log('newJob ' + JSON.stringify(msg));
+  });
+
+  socket.on('cacheHitSucceeded', function(msg){
+    console.log('cacheHitSucceeded ' + JSON.stringify(msg));
+  });
+
+  socket.on('cacheHitFailed', function(msg){
+    console.log('cacheHitFailed ' + JSON.stringify(msg));
+  });
+
+  socket.on('compileBefore', function(msg){
+    console.log('compileBefore ' + JSON.stringify(msg));
+  });
+
+  socket.on('compileAfter', function(msg){
+    console.log('compileAfter '+JSON.stringify(msg));
+  });
+
+  socket.on('schedulerArchives', function(msg){
+    console.log('schedulerArchives');
+    console.log(msg);
+  });
+  socket.on('daemonList', function(msg){
+    console.log('daemonList');
+    console.log(msg);
+  });
+</script>
+
+Hello World :) in Scheduler. <%= a%>
+
+
+<br>
+
+<svg width="100%" height="100%">
+  <circle cx="40" cy="60" r="30" style="fill:steelblue;"></circle>
+  <circle cx="80" cy="60" r="30" style="fill:steelblue;"></circle>
+  <circle cx="120" cy="60" r="30" style="fill:steelblue;"></circle>
+</svg>

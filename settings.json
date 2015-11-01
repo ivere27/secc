@@ -1,0 +1,33 @@
+{
+  "clientRemark" : "secc",
+  "client" : {
+    "cache" : true,
+    "scheduler" : {
+      "address" : "127.0.0.1",
+      "port" : 10509
+    }
+  },
+
+
+  "daemonRemarks" : "secc-daemon",
+  "daemon" : {
+    "port" : 10508,
+    "scheduler" : {
+      "address" : "127.0.0.1",
+      "port" : 10509
+    },
+    "cache" : false,
+    "redis" : {
+      "address": "127.0.0.1",
+      "port" : 6379,
+      "maxmemory" : 256000000,
+      "maxmemory-policy" : "allkeys-lru"
+    }
+  },
+
+
+  "schedulerRemarks" : "secc-scheduler",
+  "scheduler" : {
+    "port" : 10509
+  }
+}
