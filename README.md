@@ -1,4 +1,4 @@
-# secc - Distributed compiler with morden web technology.
+# secc - Distributed compiler with modern web technology.
 
 a project of 'Second Compiler'.
 
@@ -6,7 +6,7 @@ a project of 'Second Compiler'.
 
 - RESTful API in Daemon/Scheduler
 - Preprocessed and Pump Mode
-- Memory Cache(works like remote CCache)
+- Memory Cache(works like remote Ccache)
 - Debug fission(-gsplit-dwarf option) supports.
 - Monitoring by Browser(WebSocket)
 - Cross-compile(Various version/machine of compiler in network) supports
@@ -31,7 +31,7 @@ set SECC_CACHE if you want to use remote daemon's cache.
      export SECC_CACHE=1
 
 edit "client" part in 'settings.json' file.
-set schduler's address and port.
+set scheduler's address and port.
 
 upload your compiler archive by ./tool/secc-create-archive.js
 
@@ -46,7 +46,7 @@ then, just use gcc as normal.
 edit "daemon" part in 'settings.json' file.
 set scheduler's address and port.
 
-if you want to use cache, go #Caches secction.
+if you want to use cache, go #Caches section.
 
       chmod a+w run
       chmod a+w uploads
@@ -70,7 +70,7 @@ MODE 3 - Git Mode(not yet supported.)
 
 ## Debug
 
-use DEBUG=* to watch every vervose logs.
+use DEBUG=* to watch every verbose logs.
 use DEBUG=secc* to watch only SECC's log.
 
       DEBUG=* gcc -c test.c
