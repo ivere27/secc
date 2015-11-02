@@ -1,7 +1,7 @@
 {
   "name": "secc",
-  "description": "Second Compiler",
-  "version": "0.1.0",
+  "description": "Distributed compiler with modern web technology",
+  "version": "0.1.1",
   "author": {
     "name": "HoYong Jung",
     "email": ""
@@ -13,13 +13,15 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/ivere27/secc"
   },
   "homepage": "",
   "keywords": [
     "secc",
     "distcc",
-    "icecc"
+    "icecc",
+    "distributed",
+    "compiler"
   ],
   "dependencies": {
     "archiver" : "0.15.1",

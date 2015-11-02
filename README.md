@@ -13,7 +13,14 @@ a project of 'Second Compiler'.
 
 ## How to use
 
-install by git clone (or npm)
+install by git clone (then npm install)
+
+     git clone https://github.com/ivere27/secc.git
+     cd secc
+     npm install
+
+make sure you've already installed nodejs.
+
 
 ### Client
 
