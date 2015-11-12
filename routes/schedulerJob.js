@@ -48,17 +48,15 @@ module.exports = function(express, io, SECC, SCHEDULER) {
 
     var archiveInfo = am.getArchiveInfo(am.getArchiveId(information));
 
-    debug('request compiler information is..')
-    debug(information);
-    debug('suitable archive is.. %s', archiveInfo.archiveId);
-    //debug(archiveInfo);
-
     if (archiveInfo === null) {
       console.log('archive not exists. build local.')
       debug(information);
       jm.removeJob(job.id);
-      return res.json({local : true}); 
+      return res.json({local : true, error : { message : 'archive not exists'}});
     }
+
+    debug('request compiler information is..')
+    debug('suitable archive is.. %s', archiveInfo.archiveId);
 
     //Cache Check
     debug('sourceHash : %s , argvHash : %s', job.sourceHash, job.argvHash);
