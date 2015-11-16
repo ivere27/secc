@@ -10,6 +10,7 @@ a project of 'Second Compiler'.
 - Debug fission(-gsplit-dwarf option) supports.
 - Monitoring by Browser(WebSocket)
 - Cross-compile(Various version/machine of compiler in network) supports
+- Gcc / Clang support
 
 ## How to use
 
@@ -40,9 +41,19 @@ set SECC_CACHE if you want to use remote daemon's cache.
 edit "client" part in 'settings.json' file.
 set scheduler's address and port.
 
-upload your compiler archive by ./tool/secc-create-archive.js
+upload your compiler archive by ./tool/secc-upload-archive.js
 
-     nodejs secc-create-archive.js /usr/bin/gcc /usr/bin/g++ ./icecc-create-env.in http://SCHEDULER:10509
+gcc
+
+     nodejs secc-upload-archive.js --gcc /path/to/gcc /path/to/g++ archivetool.js http://SCHEDULER:PORT
+
+clang
+
+     nodejs secc-upload-archive.js --clang /path/to/clang archivetool.js http://SCHEDULER:PORT
+
+in linux case(you can use the specific compiler version),
+
+     nodejs secc-upload-archive.js --gcc /usr/bin/gcc-5 /usr/bin/g++-5 ./secc-create-archive-linux.js http://172.17.42.1:10509
 
 then, just use gcc as normal.
 

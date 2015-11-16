@@ -1,36 +1,61 @@
 /*
-This is a standard-alone tool to upload a compiler archive to Scheduler server.
-currently, using icecc's tool to create a compiler archive
-
-how to use.
-
-ex)
-nodejs secc-create-archive.js /usr/bin/gcc /usr/bin/g++ ./icecc-create-env.in http://172.17.42.1:10509
+Upload a compiler archive to Scheduler server.
 */
 
 var crypto = require('crypto');
 var fs = require("fs");
 var request = require("request");
+var path = require('path');
 
 var argv = process.argv;
-var gccPath = argv[2] || '/usr/bin/gcc';
-var gppPath = argv[3] || '/usr/bin/g++';
-var archiveToolPath = argv[4] || __dirname + '/icecc-create-env.in';
-var schedulerUrl = argv[5]; //|| 'http://localhost:10509';
+var nodePath = argv.shift(); 
+var commandPath = argv.shift();
+var command = path.basename(commandPath);
+
+var compiler = null;
+var compilerPath = null;
+
+var gccPath = null;
+var gppPath = null;
+var clangPath = null;
+var archiveToolPath = null;
+var schedulerUrl = null;
+
+function howto() {
+  console.log('%s %s --gcc /path/to/gcc /path/to/g++ archivetool.js http://SCHEDULER:PORT', nodePath, command);
+  console.log('%s %s --clang /path/to/clang archivetool.js http://SCHEDULER:PORT', nodePath, command);
+  console.log('');
+  console.log('ex)');
+  console.log('%s %s --gcc /usr/bin/gcc /usr/bin/g++ ./secc-create-archive-linux.js http://172.17.42.1:10509', nodePath, command);
+  process.exit(0);
+}
+
+if (argv.indexOf('--gcc') !== -1) {
+  compiler = 'gcc';
+  compilerPath = argv[argv.indexOf('--gcc') + 1];
+  gccPath = argv[argv.indexOf('--gcc') + 1];
+  gppPath = argv[argv.indexOf('--gcc') + 2];
+  archiveToolPath = argv[argv.indexOf('--gcc') + 3];
+  schedulerUrl = argv[argv.indexOf('--gcc') + 4];
+} else if (argv.indexOf('--clang') !== -1) {
+  compiler = 'clang';
+  compilerPath = argv[argv.indexOf('--clang') + 1];
+  clangPath = argv[argv.indexOf('--clang') + 1];
+  archiveToolPath = argv[argv.indexOf('--clang') + 2];
+  schedulerUrl = argv[argv.indexOf('--clang') + 3];
+} else {
+  howto();
+}
 
 var archive = {};
+var results = [];
 
 function final() {
   var os = require('os');
   archive.platform = os.platform();
   archive.arch = os.arch();
   
-  if (results[0].indexOf('gcc') !== -1)
-    archive.compiler = 'gcc';
-  else if (results[0].indexOf('clang') !== -1)
-    archive.compiler = 'clang';
-  else
-    archive.compiler = 'unknown';
+  archive.compiler = compiler;
 
   archive.version = results[0];
   archive.dumpversion = results[1].replace(/\n$/, '');
@@ -90,22 +115,27 @@ function async(func, callback) {
 
 //items to call each.
 var items = [function(callback){
-  callChildProcess(gccPath + ' --version', function(error, stdout, stderr){
+  callChildProcess(compilerPath + ' --version', function(error, stdout, stderr){
     if (error) throw error;
     callback(stdout);
   });
 }, function(callback){
-  callChildProcess(gccPath + ' -dumpversion', function(error, stdout, stderr){
+  callChildProcess(compilerPath + ' -dumpversion', function(error, stdout, stderr){
     if (error) throw error;
     callback(stdout);
   });
 }, function(callback){
-  callChildProcess(gccPath + ' -dumpmachine', function(error, stdout, stderr){
+  callChildProcess(compilerPath + ' -dumpmachine', function(error, stdout, stderr){
     if (error) throw error;
     callback(stdout);
   });
 }, function(callback){
-  var command = archiveToolPath + ' --gcc ' + gccPath + ' ' + gppPath + ' --addfile /usr/bin/objcopy --addfile /bin/sh';
+  var command = null;
+  if (compiler === 'gcc')
+    command = archiveToolPath + ' --gcc ' + gccPath + ' ' + gppPath;
+  else if (compiler === 'clang')
+    command = archiveToolPath + ' --clang ' + clangPath;
+
   callChildProcess(command , function(error, stdout, stderr){
     if (error) throw error;
     console.log(stdout);
@@ -115,7 +145,6 @@ var items = [function(callback){
 
 
 //series async
-var results = [];
 function series(item) {
   if(item) {
     async(item, function(result) {

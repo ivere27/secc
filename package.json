@@ -1,7 +1,7 @@
 {
   "name": "secc",
   "description": "Distributed compiler with modern web technology",
-  "version": "0.1.2",
+  "version": "0.1.5",
   "author": {
     "name": "HoYong Jung",
     "email": ""
@@ -21,7 +21,9 @@
     "distcc",
     "icecc",
     "distributed",
-    "compiler"
+    "compiler",
+    "gcc",
+    "clang"
   ],
   "dependencies": {
     "archiver" : "0.15.1",
