@@ -77,6 +77,15 @@ async.series([
       callback(null);
     });
   },
+  //add liblto_plugin.so
+  function(callback){
+    callChildProcess(compilerPath + ' -print-file-name=liblto_plugin.so', function(err, stdout, stderr){
+      if (err) return callback(err);
+      var liblto_plugin = stdout.trim();
+      addList[liblto_plugin] = {target : liblto_plugin};
+      callback(null);
+    });
+  },
   //make up addList.
   function(callback){
     addList['/usr/bin/as'] = {target : '/usr/bin/as'};
