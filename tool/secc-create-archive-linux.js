@@ -7,6 +7,8 @@ var crypto = require('crypto');
 var async = require('async');
 var mkdirp = require('mkdirp');
 
+var environment = require('../lib/environment');
+
 var argv = process.argv;
 var cwd = process.cwd();
 
@@ -83,6 +85,20 @@ async.series([
       if (err) return callback(err);
       var liblto_plugin = stdout.trim();
       addList[liblto_plugin] = {target : liblto_plugin};
+      callback(null);
+    });
+  },
+  //add symbolic link for clang.
+  function(callback){
+    if (compilerName === 'gcc')
+      return callback(null);
+
+    environment.getClangCompilerSimpleVersion(compilerPath, function(err, version){
+      if (err) return callback(err);
+
+      //http://clang.llvm.org/docs/LibTooling.html#libtooling-builtin-includes
+      var includePath = path.join(path.dirname(compilerPath), '..', 'lib', 'clang', version, 'include');
+      addList[includePath] = {target : includePath, symbolic : true};
       callback(null);
     });
   },
@@ -193,7 +209,8 @@ async.series([
 
       //using 'cp' instead of readable/writable stream to copy.(to preserve mode)
       console.log('copying %s', filePath);
-      callChildProcess('cp ' + filePath + ' ' + tempPath, function(err, stdout, stderr){
+      var option = (addList[filePath]['symbolic']) ? '-P' : '';
+      callChildProcess('cp ' + filePath + ' ' + tempPath + ' ' + option, function(err, stdout, stderr){
         if (err) return cb(err);
         cb(null);
       });
@@ -256,6 +273,9 @@ async.series([
   //hashing,
   function(callback){
     async.eachSeries(Object.keys(addList), function(filePath, cb) {
+      if (addList[filePath]['symbolic'])  //skip on symbolic links.
+        return cb(null);
+
       var tempPath = addList[filePath]['tempPath'];
       var stream = fs.createReadStream(tempPath);
       var hash = crypto.createHash('md5');
@@ -288,13 +308,14 @@ async.series([
 
     var hash = crypto.createHash('md5')
     keys.forEach(function(filePath){
-      hash.update(addList[filePath]['hash']);
-      command += ' .' + addList[filePath]['target']
+      if (!addList[filePath]['symbolic'])
+        hash.update(addList[filePath]['hash']);
+
+      command += ' ' + path.relative(tempDirectory, addList[filePath]['tempPath'])
     });
 
     contentsHash = hash.digest("hex");
     console.log('md5sum %s', contentsHash);
-
 
     command = 'tar -cvz --numeric-owner -f ' 
               + path.join(cwd, contentsHash + '.tar.gz')
