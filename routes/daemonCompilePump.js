@@ -32,7 +32,9 @@ module.exports = function(express, socket, SECC, DAEMON) {
         options.compiler = 'g++';
       else if(options.archive.compiler === 'gcc' && options.compiler === 'cc')
         options.compiler = 'gcc';
-      else if(options.archive.compiler === 'clang')
+      else if(options.archive.compiler === 'clang' && options.compiler === 'c++')
+        options.compiler = 'clang++';
+      else if(options.archive.compiler === 'clang' && options.compiler === 'cc')
         options.compiler = 'clang';
     }
 

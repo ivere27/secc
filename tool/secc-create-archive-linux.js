@@ -24,21 +24,31 @@ var contentsHash = null;
 var compilerName = null; //gcc || clang
 var compilerPath = null;
 
+var ccPath = null;
+var cppPath = null;
+
 function howto() {
   console.log('usage: %s --gcc <gcc_path> <g++_path>', command);
-  console.log('usage: %s --clang <clang_path>', command);
+  console.log('usage: %s --clang <clang_path> <clang++_path>', command);
   process.exit(0);
 }
 
 if (argv.indexOf('--gcc') !== -1) {
   compilerName = 'gcc';
   compilerPath = argv[argv.indexOf('--gcc')+1];
-  addList[argv[argv.indexOf('--gcc')+1]] = {target : '/usr/bin/gcc'};
-  addList[argv[argv.indexOf('--gcc')+2]] = {target : '/usr/bin/g++'};
+  ccPath = argv[argv.indexOf('--gcc')+1];
+  cppPath = argv[argv.indexOf('--gcc')+2];
+
+  addList[ccPath] = {target : '/usr/bin/gcc'};
+  addList[cppPath] = {target : '/usr/bin/g++'};
 } else if (argv.indexOf('--clang') !== -1) {
   compilerName = 'clang';
   compilerPath = argv[argv.indexOf('--clang')+1];
-  addList[argv[argv.indexOf('--clang')+1]] = {target : '/usr/bin/clang'};
+  ccPath = argv[argv.indexOf('--clang')+1];
+  cppPath = argv[argv.indexOf('--clang')+2];
+
+  addList[ccPath] = {target : '/usr/bin/clang'};
+  addList[cppPath] = {target : '/usr/bin/clang++'};
 } else {
   howto();
 }
@@ -88,7 +98,7 @@ async.series([
       callback(null);
     });
   },
-  //add symbolic link for clang.
+  //add 'includes' symbolic link for clang.
   function(callback){
     if (compilerName === 'gcc')
       return callback(null);
@@ -98,9 +108,21 @@ async.series([
 
       //http://clang.llvm.org/docs/LibTooling.html#libtooling-builtin-includes
       var includePath = path.join(path.dirname(compilerPath), '..', 'lib', 'clang', version, 'include');
-      addList[includePath] = {target : includePath, symbolic : true};
+      addList[includePath] = {target : includePath, symbolic : true, copySymbolic : true};
       callback(null);
     });
+  },
+  //when clang and clang++ are same(mostly), just make a symbolic link.
+  function(callback){
+    if (compilerName === 'gcc')
+      return callback(null);
+
+    if (fs.realpathSync(ccPath) === fs.realpathSync(cppPath)) {
+      addList[cppPath]['symbolic'] = true;
+      addList[cppPath]['makeSymbolic'] = true;
+    }
+
+    callback(null);
   },
   //make up addList.
   function(callback){
@@ -208,12 +230,27 @@ async.series([
       addList[filePath]['tempPath'] = tempPath;
 
       //using 'cp' instead of readable/writable stream to copy.(to preserve mode)
-      console.log('copying %s', filePath);
-      var option = (addList[filePath]['symbolic']) ? '-P' : '';
-      callChildProcess('cp ' + filePath + ' ' + tempPath + ' ' + option, function(err, stdout, stderr){
-        if (err) return cb(err);
-        cb(null);
-      });
+      if (addList[filePath]['makeSymbolic']) {
+        console.log('make link %s', filePath);
+        var relativePath = path.relative(path.dirname(addList[cppPath]['tempPath']), addList[ccPath]['tempPath']);
+        callChildProcess('ln -s ' + relativePath + ' ' + tempPath, function(err, stdout, stderr){
+          if (err) return cb(err);
+          cb(null);
+        });
+      } else if (addList[filePath]['copySymbolic']) {
+        console.log('copy link %s', filePath);
+        var option = '-P';
+        callChildProcess('cp ' + filePath + ' ' + tempPath + ' ' + option, function(err, stdout, stderr){
+          if (err) return cb(err);
+          cb(null);
+        });
+      } else {
+        console.log('copy %s', filePath);
+        callChildProcess('cp ' + filePath + ' ' + tempPath, function(err, stdout, stderr){
+          if (err) return cb(err);
+          cb(null);
+        });
+      }
     }, function(err){
       if(err)
         return callback(err);

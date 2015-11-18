@@ -10,7 +10,7 @@ var command = path.basename(commandPath);
 var originalArgv = argv.slice();  //for passThrough
 var compilerPath = path.join('/','usr','bin',command);
 
-if (['c++', 'cc', 'clang', 'g++', 'gcc'].indexOf(command) === -1) {
+if (['c++', 'cc', 'clang++', 'clang', 'g++', 'gcc'].indexOf(command) === -1) {
   console.log('print how-to');
   return;
 }

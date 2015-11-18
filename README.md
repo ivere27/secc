@@ -49,11 +49,13 @@ gcc
 
 clang
 
-     nodejs secc-upload-archive.js --clang /path/to/clang archivetool.js http://SCHEDULER:PORT
+     nodejs secc-upload-archive.js --clang /path/to/clang /path/to/clang++ archivetool.js http://SCHEDULER:PORT
 
 in linux case(you can use the specific compiler version),
 
      nodejs secc-upload-archive.js --gcc /usr/bin/gcc-5 /usr/bin/g++-5 ./secc-create-archive-linux.js http://172.17.42.1:10509
+
+     nodejs secc-upload-archive.js --clang /usr/bin/clang /usr/bin/clang++ ./secc-create-archive-linux.js http://172.17.42.1:10509
 
 then, just use gcc as normal.
 

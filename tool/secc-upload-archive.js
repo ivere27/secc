@@ -18,12 +18,13 @@ var compilerPath = null;
 var gccPath = null;
 var gppPath = null;
 var clangPath = null;
+var clangppPath = null;
 var archiveToolPath = null;
 var schedulerUrl = null;
 
 function howto() {
   console.log('%s %s --gcc /path/to/gcc /path/to/g++ archivetool.js http://SCHEDULER:PORT', nodePath, command);
-  console.log('%s %s --clang /path/to/clang archivetool.js http://SCHEDULER:PORT', nodePath, command);
+  console.log('%s %s --clang /path/to/clang /path/to/clang++ archivetool.js http://SCHEDULER:PORT', nodePath, command);
   console.log('');
   console.log('ex)');
   console.log('%s %s --gcc /usr/bin/gcc /usr/bin/g++ ./secc-create-archive-linux.js http://172.17.42.1:10509', nodePath, command);
@@ -41,8 +42,9 @@ if (argv.indexOf('--gcc') !== -1) {
   compiler = 'clang';
   compilerPath = argv[argv.indexOf('--clang') + 1];
   clangPath = argv[argv.indexOf('--clang') + 1];
-  archiveToolPath = argv[argv.indexOf('--clang') + 2];
-  schedulerUrl = argv[argv.indexOf('--clang') + 3];
+  clangppPath = argv[argv.indexOf('--clang') + 2];
+  archiveToolPath = argv[argv.indexOf('--clang') + 3];
+  schedulerUrl = argv[argv.indexOf('--clang') + 4];
 } else {
   howto();
 }
@@ -134,7 +136,7 @@ var items = [function(callback){
   if (compiler === 'gcc')
     command = archiveToolPath + ' --gcc ' + gccPath + ' ' + gppPath;
   else if (compiler === 'clang')
-    command = archiveToolPath + ' --clang ' + clangPath;
+    command = archiveToolPath + ' --clang ' + clangPath + ' ' + clangppPath;
 
   callChildProcess(command , function(error, stdout, stderr){
     if (error) throw error;
