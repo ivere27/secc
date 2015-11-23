@@ -16,9 +16,11 @@ a project of 'Second Compiler'.
 
 install by git clone (then npm install)
 
-     git clone https://github.com/ivere27/secc.git
-     cd secc
-     npm install
+```sh
+git clone https://github.com/ivere27/secc.git
+cd secc
+npm install
+```
 
 make sure you've already installed nodejs.
 
@@ -27,16 +29,22 @@ make sure you've already installed nodejs.
 
 set PATH and NUMBER_OF_PROCESSORS(-jX)
 
-     export PATH=/path/to/secc/bin:$PATH
-     export NUMBER_OF_PROCESSORS="8"
+```sh
+export PATH=/path/to/secc/bin:$PATH
+export NUMBER_OF_PROCESSORS="8"
+```
 
 set SECC_MODE = 1 or 2 (see below, Mode section)
 
-     export SECC_MODE=1
+```sh
+export SECC_MODE=1
+```
 
 set SECC_CACHE if you want to use remote daemon's cache.
 
-     export SECC_CACHE=1
+```sh
+export SECC_CACHE=1
+```
 
 edit "client" part in 'settings.json' file.
 set scheduler's address and port.
@@ -45,11 +53,15 @@ upload your compiler archive by ./tool/secc-upload-archive.js
 
 gcc
 
-     nodejs secc-upload-archive.js --gcc /path/to/gcc /path/to/g++ archivetool.js http://SCHEDULER:PORT
+```sh
+nodejs secc-upload-archive.js --gcc /path/to/gcc /path/to/g++ archivetool.js http://SCHEDULER:PORT
+```
 
 clang
 
-     nodejs secc-upload-archive.js --clang /path/to/clang /path/to/clang++ archivetool.js http://SCHEDULER:PORT
+```sh
+nodejs secc-upload-archive.js --clang /path/to/clang /path/to/clang++ archivetool.js http://SCHEDULER:PORT
+```
 
 in linux case(you can use the specific compiler version),
 
@@ -59,7 +71,9 @@ in linux case(you can use the specific compiler version),
 
 then, just use gcc as normal.
 
-     gcc -c test.c
+```sh
+gcc -c test.c
+```
 
 ### Daemon
 
@@ -68,15 +82,22 @@ set scheduler's address and port.
 
 if you want to use cache, go #Caches section.
 
-      chmod a+w run
-      chmod a+w uploads
+```sh
+chmod a+w run
+chmod a+w uploads
+```
 
 run 'nodejs secc-daemon.js' as root for chroot-jail.
-      sudo DEBUG=secc* nodejs secc-daemon.js
+
+```sh
+sudo DEBUG=secc* nodejs secc-daemon.js
+```
 
 ### Scheduler
 
-      sudo DEBUG=secc* nodejs secc-scheduler.js
+```sh
+sudo DEBUG=secc* nodejs secc-scheduler.js
+```
 
 ## Modes
 
@@ -93,12 +114,20 @@ MODE 3 - Git Mode(not yet supported.)
 use DEBUG=* to watch every verbose logs.
 use DEBUG=secc* to watch only SECC's log.
 
-      DEBUG=* gcc -c test.c
+```sh
+DEBUG=* SECC_MODE=1 SECC_CACHE=1 /path/to/secc/bin/gcc -c test.c
+```
 
 ## Caches
 
 install REDIS in a daemon computer. then,
 enable "cache" in "daemon" part of 'settings.json' file.
+
+## Daemon's API
+
+Verb | Endpoint | Note
+--- | --- | ---
+`GET` | /native/system | daemon's native compiler(installed)
 
 
 # License
