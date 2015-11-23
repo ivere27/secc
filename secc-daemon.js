@@ -121,37 +121,16 @@ socket.on('disconnect', function(){
 
 //routers.
 var daemonIndex = require('./routes/daemonIndex')(express, socket, SECC, DAEMON);
+var daemonNative = require('./routes/daemonNative')(express, socket, SECC, DAEMON);
 var daemonCache = require('./routes/daemonCache')(express, socket, SECC, DAEMON);
 var daemonCompilePreprocessed = require('./routes/daemonCompilePreprocessed')(express, socket, SECC, DAEMON);
 var daemonCompilePump = require('./routes/daemonCompilePump')(express, socket, SECC, DAEMON);
 
 app.use('/', daemonIndex);
+app.use('/native/', daemonNative);
 app.use('/cache/', daemonCache);
 app.use('/compile/preprocessed/', daemonCompilePreprocessed);
 app.use('/compile/pump/', daemonCompilePump);
-
-
-app.get('/native/system', function (req, res) {
-  debug('get /native/system')
-  environment.getGccClangCompilerInformation(function(err, results) {
-    if(err) 
-      return res.status(400).send();
-
-    var systemInformation = environment.getSystemInformation(SECC);
-    
-    if(results.gcc)
-      systemInformation.gcc = results.gcc;
-
-    if(results.clang)
-      systemInformation.clang = results.clang;
-
-    if(socket && socket.connected)
-      systemInformation.daemonId = socket.id;
-
-    res.send(systemInformation);
-  });
-});
-
 
 var server = app.listen(SECC.daemon.port, function () {
   var host = server.address().address;
