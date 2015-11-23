@@ -1,11 +1,11 @@
-/*
-Upload a compiler archive to Scheduler server.
-*/
+#!/usr/bin/env nodejs
 
 var crypto = require('crypto');
 var fs = require("fs");
 var request = require("request");
 var path = require('path');
+
+var SECC = require('../package.json');
 
 var argv = process.argv;
 var nodePath = argv.shift(); 
@@ -23,6 +23,8 @@ var archiveToolPath = null;
 var schedulerUrl = null;
 
 function howto() {
+  console.log('SECC - %s', SECC.version);
+  console.log('Upload a compiler archive to Scheduler server.\n\n')
   console.log('%s %s --gcc /path/to/gcc /path/to/g++ archivetool.js http://SCHEDULER:PORT', nodePath, command);
   console.log('%s %s --clang /path/to/clang /path/to/clang++ archivetool.js http://SCHEDULER:PORT', nodePath, command);
   console.log('');
