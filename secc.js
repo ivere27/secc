@@ -21,9 +21,9 @@ debug('--- SECC START ---');
 // check the policy. 
 var passThrough = function(command, argv) {
   var os = require('os');
-  //FIXME : check by freemem(128MB) ?
+  //FIXME : check by freemem(64MB) ?
   var isSystemStable = function(criteria) {
-    return (os.freemem() > (criteria || 1024*1024*128)) ? true : false;
+    return (os.freemem() > (criteria || 1024*1024*64)) ? true : false;
   };
   var passThroughCompile = function(command, argv) {
     debug('passThrough');
