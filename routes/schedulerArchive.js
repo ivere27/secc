@@ -31,29 +31,13 @@ module.exports = function(express, io, SECC, SCHEDULER) {
 
     if (am.archiveExists(archiveId)) {
       var archive = am.getArchiveInfo(archiveId);
-      res.redirect('/archive/'+archiveId+'/file/' + archive.archiveFile);
+
+      res.attachment(archive.archiveFile);
+      res.sendFile(path.join(SECC.archivePath, archive.archiveFile));
     }
     else
       return res.status(400).send('archive not exists.');
   })
-
-  router.get('/:archiveId/file/:archiveFile', function (req, res) {
-    debug(req.body);
-
-    var archiveId = req.params.archiveId;
-    var archiveFile = req.params.archiveFile;
-
-    if (am.archiveExists(archiveId)) {
-      var archive = am.getArchiveInfo(archiveId);
-      if (archive.archiveFile === archiveFile)
-        res.sendFile(path.join(SECC.archivePath, archive.archiveFile));
-      else
-        return res.status(400).send('archive file not exists.');  
-    }
-    else
-      return res.status(400).send('archive not exists.');
-  })
-
 
   router.delete('/:archiveId', function (req, res) {
     debug(req.body);
