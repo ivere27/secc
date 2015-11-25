@@ -123,6 +123,21 @@ DEBUG=* SECC_MODE=1 SECC_CACHE=1 /path/to/secc/bin/gcc -c test.c
 install REDIS in a daemon computer. then,
 enable "cache" in "daemon" part of 'settings.json' file.
 
+## How It Works
+* Scheduler - RESTful/WebSocket/Monitoring WebServer
+* Daemon - RESTful WebServer + WebSocket Client + Cache Server(redis)
+* Client - http client
+
+- (once) Client uploads a Compiler Archive to Scheduler
+- Scheduler and Daemons are connected by WebSocket
+- Client asks to Scheduler which daemon is available by REST API
+- (Optional) Client tries to get caches if possible
+- Client sends a source or/and dependencies to a Daemon by REST API
+- (once) Daemon downloads the archive from Scheduler if not exists
+- Daemon compiles the sources by Client's Compiler Archive
+- Daemon responds to Client with a object(+@)
+- (Optional) Objects are stored in Daemon's MemoryDB(redis)
+
 ## Scheduler's API
 
 Verb | Endpoint | Note
