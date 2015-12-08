@@ -1,3 +1,5 @@
+'use strict';
+
 var debug = require('debug')('secc:routes:schedulerArchive');
 
 var path = require('path');

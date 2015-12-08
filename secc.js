@@ -1,4 +1,6 @@
 #!/usr/bin/nodejs
+'use strict';
+
 console.time('SECC')
 
 var path = require('path');
@@ -62,36 +64,19 @@ var environment = require('./lib/environment.js');
 
 debug('loaded libraries.');
 
-//define a job.
-var JOB = {
-  id : null,
-  mode : (process.env.SECC_MODE == 2) ? '2' : '1',
-  sourcePath : null,
-  outputPath : null,
-  declaredOutputPath : compile.determineOutputPath(argv,true),
-  declaredSourcePath : compile.determineSourcePath(argv,false),
-  projectId : compile.determineProjcetId(),
-  cachePrefered : process.env.SECC_CACHE
-                  ? ((process.env.SECC_CACHE == 1) ? true : false)
-                  : SECC.client.cache,
-  command : command,
-  compilerPath : compilerPath,
-  argv : argv,
-  compilerInformation : null,
-  compileFile : null
-};
-
+//define a new job.
+var job = require('./lib/job.js')(SECC, argv.slice(), command, compilerPath);
 debug('projectId : %s , SourcePath : %s , OutputPath : %s, cachePrefered : %s'
-  , JOB.projectId, JOB.declaredSourcePath, JOB.declaredOutputPath, JOB.cachePrefered);
+  , job.projectId, job.declaredSourcePath, job.declaredOutputPath, job.cachePrefered);
 
 async.waterfall([
   //check which compiler is using.
   function(callback) {
-    environment.getCompilerInformation(JOB.compilerPath, function(err, compilerInformation) {
+    environment.getCompilerInformation(job.compilerPath, function(err, compilerInformation) {
       if (err) return callback(err);
 
       delete compilerInformation.stats;
-      JOB.compilerInformation = compilerInformation;
+      job.compilerInformation = compilerInformation;
       debug('compiler information - %s... %s %s'
         , compilerInformation.version.substr(0,30)
         , compilerInformation.dumpversion
@@ -103,7 +88,7 @@ async.waterfall([
 
   //get right outputPath, sourcePath.
   function(callback) {
-    var options = {compiler: JOB.compilerPath, argv: JOB.argv};
+    var options = {compiler: job.compilerPath, argv: job.argv};
 
     compile.GetDependencies(options).on('finish', function(err, compileFile) {
       if (err) {
@@ -117,10 +102,10 @@ async.waterfall([
         ,compileFile.sourceFile, compileFile.objectFile, compileFile.dependencies.length);
 
       //FIXME : arrange right outputPath and sourcePath. 
-      JOB.compileFile = compileFile;
-      JOB.outputPath = JOB.declaredOutputPath || compileFile.objectFile;
-      JOB.sourcePath = JOB.declaredSourcePath || compileFile.sourceFile;
-      debug('arranged sourcePath %s , outputPath %s', JOB.sourcePath, JOB.outputPath);
+      job.compileFile = compileFile;
+      job.outputPath = job.declaredOutputPath || compileFile.objectFile;
+      job.sourcePath = job.declaredSourcePath || compileFile.sourceFile;
+      debug('arranged sourcePath %s , outputPath %s', job.sourcePath, job.outputPath);
 
       callback(null);
     });
@@ -128,9 +113,9 @@ async.waterfall([
 
   //mode
   function(callback) {
-    if(JOB.mode == '2') { //performPumpMode
+    if(job.mode == '2') { //performPumpMode
       var client = require('./lib/clientPump.js');
-      client.performPumpMode(JOB, SECC, function(err){
+      client.performPumpMode(job, SECC, function(err){
         if (err)
           return callback(err);
 
@@ -138,7 +123,7 @@ async.waterfall([
       });
     } else { // performPreprocessedMode(default)
       var client = require('./lib/clientPreprocessed.js');
-      client.performPreprocessedMode(JOB, SECC, function(err){
+      client.performPreprocessedMode(job, SECC, function(err){
         if (err)
           return callback(err);
 

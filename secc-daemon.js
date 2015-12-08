@@ -1,3 +1,5 @@
+'use strict';
+
 var debug = require('debug')('secc:daemon');
 var SECC = require('./settings.json');
 

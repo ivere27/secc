@@ -1,3 +1,5 @@
+'use strict';
+
 var debug = require('debug')('secc:routes:schedulerIndex');
 
 module.exports = function(express, io, SECC, SCHEDULER) {

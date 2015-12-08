@@ -1,3 +1,5 @@
+'use strict';
+
 var debug = require('debug')('secc:routes:daemonNative');
 
 var environment = require('../lib/environment.js');

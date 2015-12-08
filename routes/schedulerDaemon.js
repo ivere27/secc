@@ -1,3 +1,5 @@
+'use strict';
+
 var debug = require('debug')('secc:routes:schedulerDaemon');
 
 var path = require('path');

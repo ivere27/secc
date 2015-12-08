@@ -1,4 +1,5 @@
 #!/usr/bin/env nodejs
+'use strict';
 
 var crypto = require('crypto');
 var fs = require("fs");

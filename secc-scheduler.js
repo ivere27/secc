@@ -1,3 +1,5 @@
+'use strict';
+
 var debug = require('debug')('secc:scheduler');
 var SECC = require('./settings.json');
 
@@ -32,10 +34,10 @@ app.use(function(err, req, res, next) {
 
 //app.use(compression);
 var SCHEDULER = {};
-SCHEDULER.am = am = require('./lib/archivemanager.js')(express, io, SECC, SCHEDULER);
-SCHEDULER.cm = cm = require('./lib/cachemanager.js')(express, io, SECC), SCHEDULER;
-SCHEDULER.dm = dm = require('./lib/daemonmanager.js')(express, io, SECC, SCHEDULER);
-SCHEDULER.jm = jm = require('./lib/jobmanager.js')(express, io, SECC, SCHEDULER);
+var am = SCHEDULER.am = require('./lib/archivemanager.js')(express, io, SECC, SCHEDULER);
+var cm = SCHEDULER.cm = require('./lib/cachemanager.js')(express, io, SECC), SCHEDULER;
+var dm = SCHEDULER.dm = require('./lib/daemonmanager.js')(express, io, SECC, SCHEDULER);
+var jm = SCHEDULER.jm = require('./lib/jobmanager.js')(express, io, SECC, SCHEDULER);
 
 //SECC.
 if (typeof SECC.archivePath === 'undefined')

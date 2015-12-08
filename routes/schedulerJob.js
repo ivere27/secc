@@ -1,3 +1,5 @@
+'use strict';
+
 var debug = require('debug')('secc:routes:schedulerJob');
 
 var path = require('path');
@@ -5,6 +7,8 @@ var path = require('path');
 module.exports = function(express, io, SECC, SCHEDULER) {
   var router = express.Router();
 
+  var am = SCHEDULER.am;
+  var cm = SCHEDULER.cm;
   var dm = SCHEDULER.dm;
   var jm = SCHEDULER.jm;
 
