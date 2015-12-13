@@ -22,7 +22,9 @@ cd secc
 npm install
 ```
 
-make sure you've already installed nodejs.
+make sure you've already installed node.js, npm and (optionally) redis
+* Ubuntu $ sudo apt-get install nodejs npm nodejs-legacy redis-server
+* Mac $ brew install nodejs redis
 
 
 ### Client
@@ -54,20 +56,20 @@ upload your compiler archive by ./tool/secc-upload-archive.js
 gcc
 
 ```sh
-nodejs secc-upload-archive.js --gcc /path/to/gcc /path/to/g++ archivetool.js http://SCHEDULER:PORT
+node secc-upload-archive.js --gcc /path/to/gcc /path/to/g++ archivetool.js http://SCHEDULER:PORT
 ```
 
 clang
 
 ```sh
-nodejs secc-upload-archive.js --clang /path/to/clang /path/to/clang++ archivetool.js http://SCHEDULER:PORT
+node secc-upload-archive.js --clang /path/to/clang /path/to/clang++ archivetool.js http://SCHEDULER:PORT
 ```
 
 in linux case(you can use the specific compiler version),
 
-     nodejs secc-upload-archive.js --gcc /usr/bin/gcc-5 /usr/bin/g++-5 ./secc-create-archive-linux.js http://172.17.42.1:10509
+     node secc-upload-archive.js --gcc /usr/bin/gcc-5 /usr/bin/g++-5 ./secc-create-archive-linux.js http://172.17.42.1:10509
 
-     nodejs secc-upload-archive.js --clang /usr/bin/clang /usr/bin/clang++ ./secc-create-archive-linux.js http://172.17.42.1:10509
+     node secc-upload-archive.js --clang /usr/bin/clang /usr/bin/clang++ ./secc-create-archive-linux.js http://172.17.42.1:10509
 
 then, just use gcc as normal.
 
@@ -87,16 +89,16 @@ chmod a+w run
 chmod a+w uploads
 ```
 
-run 'nodejs secc-daemon.js' as root for chroot-jail.
+run 'node secc-daemon.js' as root for chroot-jail.
 
 ```sh
-sudo DEBUG=secc* nodejs secc-daemon.js
+sudo DEBUG=secc* node secc-daemon.js
 ```
 
 ### Scheduler
 
 ```sh
-sudo DEBUG=secc* nodejs secc-scheduler.js
+sudo DEBUG=secc* node secc-scheduler.js
 ```
 
 ## Modes
