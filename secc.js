@@ -2,76 +2,28 @@
 'use strict';
 
 console.time('SECC')
+var debug = require('debug')('secc:client');  // 4~5ms
+var settings = require('./settings.json');
+debug('--- SECC START ---');
 
-var path = require('path');
-var argv = process.argv;
+//define a new job.
+var job = require('./lib/job.js')(settings, process.argv.slice());
+debug('projectId : %s , SourcePath : %s , OutputPath : %s, cachePrefered : %s'
+  , job.projectId, job.declaredSourcePath, job.declaredOutputPath, job.cachePrefered);
 
-var nodePath = argv.shift();    //node path. /usr/bin/nodejs or /usr/bin/node
-var commandPath = argv.shift(); //command. ./nodejs.js or ./bin/gcc
-var command = path.basename(commandPath);
-var originalArgv = argv.slice();  //for passThrough
-var compilerPath = path.join('/','usr','bin',command);
-
-if (['c++', 'cc', 'clang++', 'clang', 'g++', 'gcc'].indexOf(command) === -1) {
+if (['c++', 'cc', 'clang++', 'clang', 'g++', 'gcc'].indexOf(job.command) === -1) {
   console.log('print how-to');
   return;
 }
 
-var debug = require('debug')('secc:client');  // 4~5ms
-debug('--- SECC START ---');
+// FIXME : check the policy. 
+if (job.useLocal)
+  return job.passThrough();
 
-// check the policy. 
-var passThrough = function(command, argv) {
-  var os = require('os');
-  //FIXME : check by freemem(64MB) ?
-  var isSystemStable = function(criteria) {
-    return (os.freemem() > (criteria || 1024*1024*64)) ? true : false;
-  };
-  var passThroughCompile = function(command, argv) {
-    debug('passThrough');
-    var spawn = require('child_process').spawn,
-        exec = spawn(command, argv, {stdio: 'inherit'});
-  };
-
- //check memory usages to prevent full load.
-  if(isSystemStable())
-    return passThroughCompile(command, argv);
-  else {
-    return setTimeout(function(){
-      if(isSystemStable())
-        return passThroughCompile(command, argv);
-      else
-        debug('wait... free memory is low.')
-        return setTimeout(arguments.callee, 5000);
-    }, 5000);
-  }
-};
-
-if ( process.env.SECC_USELOCAL == 1  //always use local compiler.
-  || argv.indexOf('-c') === -1   //when -c not exists
-  || argv.indexOf('-M') !== -1   //when -M exists
-  || argv.indexOf('-E') !== -1   //when -E exists
-  || process.cwd().indexOf('CMakeFiles') !== -1 //always passThrough in CMakeFiles
-  ) {
-  return passThrough(compilerPath, originalArgv);
-}
-
-
-var async = require('async');
-var SECC = require('./settings.json');
-var compile = require('./lib/compile.js');
-var environment = require('./lib/environment.js');
-
-debug('loaded libraries.');
-
-//define a new job.
-var job = require('./lib/job.js')(SECC, argv.slice(), command, compilerPath);
-debug('projectId : %s , SourcePath : %s , OutputPath : %s, cachePrefered : %s'
-  , job.projectId, job.declaredSourcePath, job.declaredOutputPath, job.cachePrefered);
-
-async.waterfall([
+require('async').waterfall([
   //check which compiler is using.
   function(callback) {
+    var environment = require('./lib/environment.js');
     environment.getCompilerInformation(job.compilerPath, function(err, compilerInformation) {
       if (err) return callback(err);
 
@@ -89,7 +41,7 @@ async.waterfall([
   //get right outputPath, sourcePath.
   function(callback) {
     var options = {compiler: job.compilerPath, argv: job.argv};
-
+    var compile = require('./lib/compile.js');
     compile.GetDependencies(options).on('finish', function(err, compileFile) {
       if (err) {
         debug('GetDependencies Error Raised.');
@@ -114,16 +66,14 @@ async.waterfall([
   //mode
   function(callback) {
     if(job.mode == '2') { //performPumpMode
-      var client = require('./lib/clientPump.js');
-      client.performPumpMode(job, SECC, function(err){
+      require('./lib/clientPump.js').performPumpMode(job, settings, function(err){
         if (err)
           return callback(err);
 
         callback(null);
       });
     } else { // performPreprocessedMode(default)
-      var client = require('./lib/clientPreprocessed.js');
-      client.performPreprocessedMode(job, SECC, function(err){
+      require('./lib/clientPreprocessed.js').performPreprocessedMode(job, settings, function(err){
         if (err)
           return callback(err);
 
@@ -137,7 +87,7 @@ async.waterfall([
   function(err) {
     if(err) {
       debug(err);
-      return passThrough(compilerPath, originalArgv);
+      return job.passThrough();
     }
 
     //Everything is okay.
