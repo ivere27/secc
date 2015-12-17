@@ -25,6 +25,57 @@ module.exports = function(express, io, SECC, SCHEDULER) {
       return res.status(400).send('archive not exists.');
   })
 
+  router.get('/:archiveId/target', function (req, res) {
+    debug(req.body);
+
+    var archiveId = req.params.archiveId;
+
+    if (am.archiveExists(archiveId))
+      return res.json(am.getArchiveInfo(archiveId).targets);
+    else
+      return res.status(400).send('archive not exists.');
+  })
+
+  router.post('/:archiveId/target/:target', function (req, res) {
+    debug(req.body);
+
+    var archiveId = req.params.archiveId;
+    var target = req.params.target;
+
+    if (am.archiveExists(archiveId)) {
+      am.addTarget(archiveId, target, function(err, archive){
+        if (err) {
+          debug(err);
+          return res.status(400).send('unable to add a target.');
+        }
+
+        res.json(archive.targets);
+      });
+    }
+    else
+      return res.status(400).send('archive not exists.');
+  });
+
+  router.delete('/:archiveId/target/:target', function (req, res) {
+    debug(req.body);
+
+    var archiveId = req.params.archiveId;
+    var target = req.params.target;
+
+    if (am.archiveExists(archiveId)) {
+      am.removeTarget(archiveId, target, function(err, archive){
+        if (err) {
+          debug(err);
+          return res.status(400).send('unable to remove a target.');
+        }
+
+        res.json(archive.targets);
+      });
+    }
+    else
+      return res.status(400).send('archive not exists.');
+  });
+
   router.get('/:archiveId/file/', function (req, res) {
     debug(req.body);
 
@@ -66,6 +117,8 @@ module.exports = function(express, io, SECC, SCHEDULER) {
 
     var archive = JSON.parse(req.body.archive);
     debug(archive);
+
+    //FIXME : need to check archive data type.
 
     if (am.archiveExists(archive.archiveId))
       return res.status(400).send('archive already exists.'); 

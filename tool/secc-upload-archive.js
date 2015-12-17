@@ -65,6 +65,7 @@ function final() {
   archive.version = results[0];
   archive.dumpversion = results[1].replace(/\n$/, '');
   archive.dumpmachine = results[2].replace(/\n$/, '');
+  archive.targets = [];
   archive.archiveLog = results[3];
   archive.archiveFile = archive.archiveLog.split('creating').pop().trim();
 
