@@ -59,7 +59,7 @@ app.use('/job/', schedulerJob);
 //sockets.
 io.on('connection', function(socket){
   debug('io connect!!! %s', socket.id);
-  var newDaemon = { id: socket.id, 
+  var newDaemon = { daemonId: socket.id, 
     jobs: 0, maxJobs: 0, type: 'guest', 
     daemonAddress : socket.handshake.address };
   dm.addDaemon(newDaemon);
