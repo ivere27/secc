@@ -51,6 +51,11 @@ module.exports = function(express, socket, SECC, DAEMON) {
     if (typeof req.headers['secc-filename'] !== 'undefined')
       options.fileName = req.headers['secc-filename'];
 
+    if (typeof req.headers['secc-cross'] !== 'undefined')
+      options.cross = (req.headers['secc-cross'] == 'true') ? true : false;
+    if (typeof req.headers['secc-target'] !== 'undefined')
+      options.target = req.headers['secc-target'];
+
     //using stdin pipe
     options.usingPipe = true;
 
