@@ -25,12 +25,14 @@ var schedulerUrl = null;
 
 function howto() {
   console.log('SECC - %s', SECC.version);
-  console.log('Upload a compiler archive to Scheduler server.\n\n')
+  console.log('Upload a compiler archive to Scheduler server.\n')
+  console.log('Options:')
   console.log('%s %s --gcc /path/to/gcc /path/to/g++ archivetool.js http://SCHEDULER:PORT', nodePath, command);
   console.log('%s %s --clang /path/to/clang /path/to/clang++ archivetool.js http://SCHEDULER:PORT', nodePath, command);
-  console.log('');
-  console.log('ex)');
+  console.log('\n');
+  console.log('Example:');
   console.log('%s %s --gcc /usr/bin/gcc /usr/bin/g++ ./secc-create-archive-linux.js http://172.17.42.1:10509', nodePath, command);
+  console.log('%s %s --clang /usr/bin/clang /usr/bin/clang++ ./secc-create-archive-linux.js http://172.17.42.1:10509', nodePath, command);
   process.exit(0);
 }
 
