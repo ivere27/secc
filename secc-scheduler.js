@@ -38,6 +38,7 @@ var am = SCHEDULER.am = require('./lib/archivemanager.js')(express, io, SECC, SC
 var cm = SCHEDULER.cm = require('./lib/cachemanager.js')(express, io, SECC), SCHEDULER;
 var dm = SCHEDULER.dm = require('./lib/daemonmanager.js')(express, io, SECC, SCHEDULER);
 var jm = SCHEDULER.jm = require('./lib/jobmanager.js')(express, io, SECC, SCHEDULER);
+var om = SCHEDULER.om = require('./lib/optionmanager.js')();
 
 //SECC.
 if (typeof SECC.archivePath === 'undefined')
@@ -49,12 +50,14 @@ var schedulerArchive = require('./routes/schedulerArchive')(express, io, SECC, S
 var schedulerCache = require('./routes/schedulerCache')(express, io, SECC, SCHEDULER);
 var schedulerDaemon = require('./routes/schedulerDaemon')(express, io, SECC, SCHEDULER);
 var schedulerJob = require('./routes/schedulerJob')(express, io, SECC, SCHEDULER);
+var schedulerOption = require('./routes/schedulerOption')(express, io, SECC, SCHEDULER);
 
 app.use('/', schedulerIndex);
 app.use('/archive/', schedulerArchive);
 app.use('/cache/', schedulerCache);
 app.use('/daemon/', schedulerDaemon);
 app.use('/job/', schedulerJob);
+app.use('/option/', schedulerOption);
 
 //sockets.
 io.on('connection', function(socket){
