@@ -10,7 +10,15 @@ module.exports = function(express, io, SECC, SCHEDULER) {
   var om = SCHEDULER.om;
 
   router.post('/analyze', function (req, res) {
-    res.send('not implemented');
+    var json = req.body;
+
+    if (typeof json !== 'object' 
+      || !Array.isArray(json.argv)
+      ) {
+      return res.status(400).send('invalid options');
+    }
+
+    res.send(om.analyzeArguments(json.argv));
   });
 
   router.get('/gcc', function (req, res) {
