@@ -14,11 +14,14 @@ module.exports = function(express, io, SECC, SCHEDULER) {
 
     if (typeof json !== 'object' 
       || !Array.isArray(json.argv)
+      || typeof json.compiler === 'undefined'
+      || typeof json.cwd === 'undefined'
+      || typeof json.mode === 'undefined'
       ) {
       return res.status(400).send('invalid options');
     }
 
-    res.send(om.analyzeArguments(json.argv));
+    res.send(om.analyzeArguments(json.argv, json.compiler, json.cwd, json.mode));
   });
 
   router.get('/gcc', function (req, res) {

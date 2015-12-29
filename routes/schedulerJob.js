@@ -142,7 +142,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
 
     //no available daemon.
     jm.removeJob(job.id);
-    res.json({local : true});
+    return res.json({local : true, error : { message : 'no available daemon'}});
   })
 
   return router;
