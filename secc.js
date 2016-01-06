@@ -7,6 +7,20 @@ var path = require('path');
 var settings = require('./settings.json');
 debug('--- SECC START ---');
 
+//print all arguments for test purpose.
+if (process.env.SECC_CMDLINE) {
+  var args = 'DEBUG=* SECC_MODE=1 SECC_CACHE=0 ';
+  for (var i in process.argv)
+    args += "'" + process.argv[i] + "' ";
+
+  debug('-- Direct Command --')
+  // debug('environment');
+  // debug(process.env);
+
+  debug('cd ' + process.cwd());
+  debug(args);
+}
+
 //define passThrough
 var passThrough = function() {
   var os = require('os');
