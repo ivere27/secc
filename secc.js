@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-'use strict';
 
 console.time('SECC')
 var debug = require('debug')('secc:client');  // 4~5ms
