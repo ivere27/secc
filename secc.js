@@ -24,14 +24,17 @@ if (process.env.SECC_CMDLINE) {
 //define passThrough
 var passThrough = function() {
   var os = require('os');
-  //FIXME : check by freemem(128MB) ?
+  //FIXME : check by freemem(50MB) ?
   var isSystemStable = function(criteria) {
-    return (os.freemem() > (criteria || 1024*1024*128)) ? true : false;
+    return (os.freemem() > (criteria || 1024*1024*50)) ? true : false;
   };
   var passThroughCompile = function(command, argv) {
     debug('passThrough');
     var spawn = require('child_process').spawn,
         exec = spawn(command, argv, {stdio: 'inherit'});
+    exec.on('close', function(code) {
+      process.exit(code);
+    });
   };
 
  //check memory usages to prevent full load.
