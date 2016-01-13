@@ -10,3 +10,11 @@ $ ./build-jsc --gtk --release
 3. JavaScriptCore is now built (09m:04s).
 4. JavaScriptCore is now built (09m:03s).
 5. JavaScriptCore is now built (09m:03s).
+
+
+!! Hacks
+* Linux tmpfs
+$ sudo rm -rf /path/to/secc/run/*
+$ sudo rm -rf /path/to/secc/uploads/*
+$ sudo mount tmpfs /path/to/secc/run -t tmpfs
+$ sudo mount tmpfs /path/to/secc/uploads -t tmpfs -o noexec
