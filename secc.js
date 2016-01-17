@@ -1,11 +1,17 @@
 #!/usr/bin/env node
 
-console.time('SECC')
+var _SECC_START_TIME = new Date();
+if (process.env.DEBUG && process.env.SECC_LOG) {
+  try {
+    process.env['DEBUG_FD'] = require('fs').openSync(process.env.SECC_LOG, 'a+');
+  } catch(e) {}
+}
+
 var debug = require('debug')('secc:client');  // 4~5ms
 var fs = require('fs');
 var path = require('path');
 var settings = require('./settings.json');
-debug('--- SECC START ---');
+debug('--- SECC START --- ' + _SECC_START_TIME);
 
 //print all arguments for test purpose.
 if (process.env.SECC_CMDLINE) {
@@ -14,8 +20,8 @@ if (process.env.SECC_CMDLINE) {
     args += "'" + process.argv[i] + "' ";
 
   debug('-- Direct Command --')
-  // debug('environment');
-  // debug(process.env);
+  debug('environment');
+  debug(process.env);
 
   debug('cd ' + process.cwd());
   debug(args);
@@ -220,7 +226,6 @@ require('async').waterfall([
 
     //Everything is okay.
     debug(process.memoryUsage());
-    debug('--- SECC END ---');
-    if (process.env.DEBUG) console.timeEnd('SECC')
+    debug('--- SECC END --- ' + (new Date() - _SECC_START_TIME) + ' ms');
   }
 );
