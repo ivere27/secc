@@ -7,7 +7,7 @@ if (process.env.DEBUG && process.env.SECC_LOG) {
   } catch(e) {}
 }
 
-var debug = require('debug')('secc:client');  // 4~5ms
+var debug = require('debug')('secc:'+process.pid+':client');  // 4~5ms
 var fs = require('fs');
 var path = require('path');
 var settings = require('./settings.json');
