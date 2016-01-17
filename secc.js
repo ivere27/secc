@@ -15,16 +15,18 @@ debug('--- SECC START --- ' + _SECC_START_TIME);
 
 //print all arguments for test purpose.
 if (process.env.SECC_CMDLINE) {
-  var args = 'DEBUG=* SECC_MODE=1 SECC_CACHE=0 ';
+  debug('-- Direct Command --')
+  var env = '';
+  for (var key in process.env) {
+    if (key === 'DEBUG_FD') continue;
+    env += '' + key + "='" + process.env[key].replace("'","''")+"' ";
+  }
+
+  var args = '';
   for (var i in process.argv)
     args += "'" + process.argv[i] + "' ";
-
-  debug('-- Direct Command --')
-  debug('environment');
-  debug(process.env);
-
   debug('cd ' + process.cwd());
-  debug(args);
+  debug(env + '  \\\n  ' + args);
 }
 
 //define passThrough
