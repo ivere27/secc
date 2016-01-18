@@ -3,6 +3,7 @@
 
 //FIXME : merge with secc-create-archive-linux.js
 //        os.platform() === 'darwin'
+//trace by $ sudo /usr/bin/dtruss -a -p <PID|SHELL PID>
 
 var os = require('os');
 var fs = require('fs');
@@ -26,34 +27,24 @@ var addFileList = [];
 var tempDirectory = null;
 var contentsHash = null;
 
-var compilerName = null; //gcc || clang
+var compilerName = null; //clang
 var compilerPath = null;
 
 var ccPath = null;
 var cppPath = null;
+var ccRealPath = null;
+var cppRealPath = null;
 
 function howto() {
-  console.log('usage: %s --gcc <gcc_path> <g++_path>', command);
   console.log('usage: %s --clang <clang_path> <clang++_path>', command);
   process.exit(0);
 }
 
-if (argv.indexOf('--gcc') !== -1) {
-  compilerName = 'gcc';
-  compilerPath = argv[argv.indexOf('--gcc')+1];
-  ccPath = argv[argv.indexOf('--gcc')+1];
-  cppPath = argv[argv.indexOf('--gcc')+2];
-
-  addList[ccPath] = {target : '/usr/bin/gcc'};
-  addList[cppPath] = {target : '/usr/bin/g++'};
-} else if (argv.indexOf('--clang') !== -1) {
+if (argv.indexOf('--clang') !== -1) {
   compilerName = 'clang';
   compilerPath = argv[argv.indexOf('--clang')+1];
   ccPath = argv[argv.indexOf('--clang')+1];
   cppPath = argv[argv.indexOf('--clang')+2];
-
-  addList[ccPath] = {target : '/usr/bin/clang'};
-  addList[cppPath] = {target : '/usr/bin/clang++'};
 } else {
   howto();
 }
@@ -68,30 +59,78 @@ function callChildProcess(command, options, cb) {
     child = exec(command, options, cb);
 }
 
+var debug = require('debug')('secc:tool');
+function addFile(object, filePath, targetPath, cb, level) {
+  if (object.hasOwnProperty(filePath)) return cb(null);
+  if (typeof level === 'undefined')
+    var level = 0;
+  debug((" " + level).slice(-2) + ' level. path is : ' + filePath);
+
+  object[filePath] = {target : targetPath};
+  var realpath = fs.realpathSync(filePath);
+  callChildProcess('file ' + realpath, function(err, stdout, stderr){
+    if (err) return cb(err);
+    object[filePath]['realpath'] = realpath;
+    object[filePath]['type'] = null;
+    object[filePath]['fileStdout'] = stdout;
+    if (object[filePath]['fileStdout'].indexOf('Mach-O') !== -1) {
+      object[filePath]['type'] = 'Mach-O';
+      callChildProcess('otool -L ' + realpath, function(err, stdout, stderr){
+        if (err) return cb(err);
+
+        object[filePath]['otoolStdout'] = stdout;
+        var arr = object[filePath]['otoolStdout'].trim().split('\n');
+        var dependencies = [];
+
+        for (var i in arr) {
+          if ((arr[i].indexOf(path.basename(filePath)) !== -1) ||  //first line. fileName: [(architecture i386|x86_64)]
+              (arr[i].indexOf(path.basename(object[filePath]['realpath'])) !== -1))
+            continue;
+
+          var dependencyPath = arr[i].trim().split(/\s+/)[0];
+          if (arr[i] === filePath) continue; //same path
+
+          dependencies.push(dependencyPath);
+        }
+
+        //recursive dependencies
+        async.eachSeries(dependencies, function(dependencyPath, callback) {
+          addFile(object, dependencyPath, dependencyPath, callback, level+1);
+        }, function(err){
+          if(err)
+            return cb(err);
+          return cb(null);
+        });
+      });
+    } else  //normal file
+      return cb(null);
+  });
+}
+
 console.log('SECC archive generator.');
 async.series([
-  //add cc1
+  //base compilerPath must be '/usr/bin/...'
   function(callback){
-    if (compilerName === 'clang')
-      return callback(null);
-
-    callChildProcess(compilerPath + ' -print-prog-name=cc1', function(err, stdout, stderr){
+    addFile(addList, ccPath, '/usr/bin/clang', callback);
+  },
+  function(callback){
+    addFile(addList, cppPath, '/usr/bin/clang++', callback);
+  },
+  //add real path.
+  //such as /Library/Developer/CommandLineTools/usr/bin/clang
+  function(callback){
+    callChildProcess(compilerPath + ' -print-prog-name=clang', function(err, stdout, stderr){
       if (err) return callback(err);
-      var cc1 = stdout.trim();
-      addList[cc1] = {target : '/usr/bin/cc1'};
-      callback(null);
+      ccRealPath = stdout.trim();
+      addFile(addList, ccRealPath, ccRealPath, callback);
     });
   },
   //add cc1plus
   function(callback){
-    if (compilerName === 'clang')
-      return callback(null);
-
-    callChildProcess(compilerPath + ' -print-prog-name=cc1plus', function(err, stdout, stderr){
+    callChildProcess(compilerPath + ' -print-prog-name=clang++', function(err, stdout, stderr){
       if (err) return callback(err);
-      var cc1plus = stdout.trim();
-      addList[cc1plus] = {target : '/usr/bin/cc1plus'};
-      callback(null);
+      cppRealPath = stdout.trim();
+      addFile(addList, cppRealPath, cppRealPath, callback);
     });
   },
 
@@ -111,12 +150,9 @@ async.series([
   // },
   //when clang and clang++ are same(mostly), just make a symbolic link.
   function(callback){
-    if (compilerName === 'gcc')
-      return callback(null);
-
-    if (fs.realpathSync(ccPath) === fs.realpathSync(cppPath)) {
-      addList[cppPath]['symbolic'] = true;
-      addList[cppPath]['makeSymbolic'] = true;
+    if (fs.realpathSync(ccRealPath) === fs.realpathSync(cppRealPath)) {
+      addList[cppRealPath]['symbolic'] = true;
+      addList[cppRealPath]['makeSymbolic'] = true;
     }
 
     callback(null);
@@ -124,89 +160,31 @@ async.series([
   //make up addList.
   function(callback){
     //https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/dyld.1.html
-    addList['/usr/lib/dyld'] = {target : '/usr/lib/dyld'};
-    addList['/usr/bin/as']   = {target : '/usr/bin/as'};
-    addList['/bin/sh']       = {target : '/bin/sh'};
+    var dependencies = [];
+    dependencies.push('/usr/lib/dyld');
+    dependencies.push('/usr/bin/as');
+    dependencies.push('/bin/sh');
+    dependencies.push('/usr/share/current-os.sdk/Info.plist');
+    dependencies.push('/Library/Developer/CommandLineTools/usr/lib/libxcrun.dylib');
+    //dependencies.push('/bin/ls'); //chroot test purpose.
 
-    callback(null);
-  },
-  //check shared object.
-  function(callback){
-    async.eachSeries(Object.keys(addList), function(filePath, cb) {
-      var realpath = fs.realpathSync(filePath);
-      callChildProcess('file ' + realpath, function(err, stdout, stderr){
-        if (err) throw cb(err);
-        addList[filePath]['realpath'] = realpath;
-        addList[filePath]['type'] = null;
-        addList[filePath]['fileStdout'] = stdout;
-        
-        if (addList[filePath]['fileStdout'].indexOf('Mach-O') !== -1) {
-          addList[filePath]['type'] = 'Mach-O';
-          callChildProcess('otool -L ' + realpath, function(err, stdout, stderr){
-            if (err) throw cb(err);
-            
-            addList[filePath]['otoolStdout'] = stdout;
-            cb(null);
-          });
-        } else {
-          cb(null);
-        }
-      });
+    //additional dependencies
+    async.eachSeries(dependencies, function(dependencyPath, cb) {
+      addFile(addList, dependencyPath, dependencyPath, cb);
     }, function(err){
       if(err)
         return callback(err);
-
-      callback(null);
+      return callback(null);
     });
   },
-  //parsing otoolStdout
-  function(callback){
-    async.eachSeries(Object.keys(addList), function(filePath, cb) {
-      if (addList[filePath]['type'] === 'Mach-O') {
-        var arr = addList[filePath]['otoolStdout'].trim().split('\n');
-        arr.map(function(dependency) {
-          if (dependency.indexOf(path.basename(filePath)) !== -1) return;  //fileName: [(architecture i386|x86_64)]
-          var dependencyPath = dependency.trim().split(/\s+/)[0];
 
-          if (dependencyPath === filePath) return; //same path
-          addFileList.push(dependencyPath);
-        });
-      }
-
-      cb(null);
-    }, function(err){
-      if(err)
-        return callback(err);
-
-      callback(null);
-    });
-
-  },
-  //remove duplications. //remove unnecessary file(ex, linux-vdso.so.1)
-  function(callback) {
-    addFileList = addFileList.filter(function(item, pos, self) {
-      return self.indexOf(item) == pos;
-    });
-
-    callback(null);
-  },
-  //re-arrange. addFileList to addList
-  function(callback) {
-    addFileList.map(function(filePath){
-      if (!(filePath in addList)) {
-        addList[filePath] = {target : filePath};
-      }
-    });
-
-    callback(null);
-  },
   //create a temp directory.
   function(callback){
     tempDirectory = path.join(os.tmpdir(), 'SECC_' + crypto.randomBytes(10).toString('hex'));
     mkdirp.sync(tempDirectory, '0775');
 
     console.log('mkdir temp directory : %s',tempDirectory);
-    callback(null);  
+    callback(null);
   },
   //copy add files to the temp directory
   function(callback){
