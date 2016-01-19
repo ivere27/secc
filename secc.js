@@ -83,6 +83,8 @@ job.outputPath = null;
 job.compilerInformation = null;
 job.compileFile = null;
 job.sourceHash = null;
+job.target = null;
+job.targetSpecified = false;
 
 if (['c++', 'cc', 'clang++', 'clang', 'g++', 'gcc'].indexOf(job.command) === -1) {
   console.log('print how-to');
@@ -149,6 +151,8 @@ require('async').waterfall([
         job.argvHash = json.argvHash;
         job.localArgv = json.localArgv;
         job.remoteArgv = json.remoteArgv;
+        job.target = json.target;
+        job.targetSpecified = json.targetSpecified;
         debug(json);
         callback(null);
       });
