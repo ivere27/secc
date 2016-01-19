@@ -109,20 +109,12 @@ function addFile(object, filePath, targetPath, cb, level) {
 
 console.log('SECC archive generator.');
 async.series([
-  //base compilerPath must be '/usr/bin/...'
-  function(callback){
-    addFile(addList, ccPath, '/usr/bin/clang', callback);
-  },
-  function(callback){
-    addFile(addList, cppPath, '/usr/bin/clang++', callback);
-  },
-  //add real path.
-  //such as /Library/Developer/CommandLineTools/usr/bin/clang
+  //findout where clang is
   function(callback){
     callChildProcess(compilerPath + ' -print-prog-name=clang', function(err, stdout, stderr){
       if (err) return callback(err);
       ccRealPath = stdout.trim();
-      addFile(addList, ccRealPath, ccRealPath, callback);
+      addFile(addList, ccRealPath, '/usr/bin/clang', callback);
     });
   },
   //add cc1plus
@@ -130,24 +122,9 @@ async.series([
     callChildProcess(compilerPath + ' -print-prog-name=clang++', function(err, stdout, stderr){
       if (err) return callback(err);
       cppRealPath = stdout.trim();
-      addFile(addList, cppRealPath, cppRealPath, callback);
+      addFile(addList, cppRealPath, '/usr/bin/clang++', callback);
     });
   },
-
-  // //add 'includes' symbolic link for clang.
-  // function(callback){
-  //   if (compilerName === 'gcc')
-  //     return callback(null);
-
-  //   environment.getClangCompilerSimpleVersion(compilerPath, function(err, version){
-  //     if (err) return callback(err);
-  //     console.log(version)
-  //     //http://clang.llvm.org/docs/LibTooling.html#libtooling-builtin-includes
-  //     var includePath = path.join(path.dirname(compilerPath), '..', 'lib', 'clang', version, 'include');
-  //     addList[includePath] = {target : includePath, symbolic : true, copySymbolic : true};
-  //     callback(null);
-  //   });
-  // },
   //when clang and clang++ are same(mostly), just make a symbolic link.
   function(callback){
     if (fs.realpathSync(ccRealPath) === fs.realpathSync(cppRealPath)) {
@@ -164,8 +141,6 @@ async.series([
     dependencies.push('/usr/lib/dyld');
     dependencies.push('/usr/bin/as');
     dependencies.push('/bin/sh');
-    dependencies.push('/usr/share/current-os.sdk/Info.plist');
-    dependencies.push('/Library/Developer/CommandLineTools/usr/lib/libxcrun.dylib');
     //dependencies.push('/bin/ls'); //chroot test purpose.
 
     //additional dependencies
@@ -196,7 +171,7 @@ async.series([
       //using 'cp' instead of readable/writable stream to copy.(to preserve mode)
       if (addList[filePath]['makeSymbolic']) {
         console.log('make link %s', filePath);
-        var relativePath = path.relative(path.dirname(addList[cppPath]['tempPath']), addList[ccPath]['tempPath']);
+        var relativePath = path.relative(path.dirname(addList[cppRealPath]['tempPath']), addList[ccRealPath]['tempPath']);
         callChildProcess('ln -s ' + relativePath + ' ' + tempPath, function(err, stdout, stderr){
           if (err) return cb(err);
           cb(null);
