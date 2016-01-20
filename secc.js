@@ -41,6 +41,8 @@ var passThrough = function() {
     var spawn = require('child_process').spawn,
         exec = spawn(command, argv, {stdio: 'inherit'});
     exec.on('close', function(code) {
+      debug(process.memoryUsage());
+      debug('--- SECC END --- ' + (new Date() - _SECC_START_TIME) + ' ms');
       process.exit(code);
     });
   };
@@ -59,6 +61,22 @@ var passThrough = function() {
   }
 };
 
+//FIXME : sync or callback? //async.detect(pathArray, fs.stat, function(result){});  
+var lookupInPath = function(seccPath, command) {
+  var pathArray = process.env.PATH.split(':')
+                  .map(function(e){return path.join(e, command)})
+                  .filter(function(e){return e !== seccPath});
+
+  for(var i in pathArray) {
+    try {
+      fs.statSync(pathArray[i]);
+      return pathArray[i];
+    } catch(e) {}
+  }
+
+  return null;
+}
+
 //define a new job.
 var job = {};
 job.argv = process.argv.slice();
@@ -66,7 +84,6 @@ job.nodePath = job.argv.shift();
 job.commandPath = job.argv.shift();
 job.command = path.basename(job.commandPath);
 job.originalArgv = job.argv.slice();
-job.compilerPath = path.join('/','usr','bin', job.command);
 job.mode = (process.env.SECC_MODE == 2) ? '2' : '1';
 job.declaredSourcePath = null;
 job.declaredOutputPath = null;
@@ -86,9 +103,21 @@ job.sourceHash = null;
 job.target = null;
 job.targetSpecified = false;
 
-if (['c++', 'cc', 'clang++', 'clang', 'g++', 'gcc'].indexOf(job.command) === -1) {
+if (['cc', 'clang', 'gcc'].indexOf(job.command) !== -1) {
+  job.compilerPath = process.env.SECC_CC
+                   ? process.env.SECC_CC
+                   : ((settings.client.CC)
+                     ? settings.client.CC
+                     : lookupInPath(job.commandPath, job.command));
+} else if (['c++', 'clang++', 'g++'].indexOf(job.command) !== -1) {
+  job.compilerPath = process.env.SECC_CXX
+                   ? process.env.SECC_CXX
+                   : ((settings.client.CXX)
+                     ? settings.client.CXX
+                     : lookupInPath(job.commandPath, job.command));
+} else {
   console.log('print how-to');
-  return;
+  process.exit(1);
 }
 
 job.compiler = fs.realpathSync(job.compilerPath);
@@ -97,10 +126,12 @@ if (job.compiler.indexOf('clang') !== -1)
 else if ((job.compiler.indexOf('gcc') !== -1) || (job.compiler.indexOf('g++') !== -1))
   job.compiler = 'gcc';
 else
-  return passThrough();
+  passThrough();
 
-if (process.cwd().indexOf('CMakeFiles') !== -1) //always passThrough in CMakeFiles
-  return passThrough();
+//quick check
+if ( (job.argv.indexOf('-c') === -1)
+  || (process.cwd().indexOf('CMakeFiles') !== -1)) //always passThrough in CMakeFiles 
+  passThrough();
 
 //debug(job);
 
