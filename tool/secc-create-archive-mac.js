@@ -35,6 +35,10 @@ var cppPath = null;
 var ccRealPath = null;
 var cppRealPath = null;
 
+/* clang is located in /usr/local/bin/clang
+   $ brew install llvm --with-clang --with-clang-extra-tools --with-libcxx
+   $ brew link llvm --force
+*/
 function howto() {
   console.log('usage: %s --clang <clang_path> <clang++_path>', command);
   process.exit(0);
