@@ -4,7 +4,6 @@ var debug = require('debug')('secc:daemon');
 var SECC = require('./settings.json');
 
 var crypto = require('crypto');
-var os = require('os');
 var path = require('path');
 
 var express = require('express');
@@ -82,56 +81,9 @@ var DAEMON = {
 
 var schedulerUrl = 'http://' + SECC.daemon.scheduler.address + ':' + SECC.daemon.scheduler.port;
 var socket = require('socket.io-client')(schedulerUrl);
-socket.on('connect', function(){
-  //console.log(socket);
-  console.log('socket.io - connected.')
 
-  environment.getGccClangCompilerInformation(function(err, results) {
-    if(err) 
-      return;
-
-    var daemonInformation = environment.getSystemInformation(SECC);
-    
-    if(results.gcc)
-      daemonInformation.gcc = results.gcc;
-
-    if(results.clang)
-      daemonInformation.clang = results.clang;
-
-    daemonInformation.cpus = os.cpus();
-    daemonInformation.networkInterfaces = os.networkInterfaces();
-
-    socket.emit('daemonInformation', daemonInformation);
-
-    DAEMON.loadReportTimer = setInterval(function(){
-      socket.emit('daemonLoad', { loadavg : os.loadavg()
-                                , totalmem : os.totalmem()
-                                , freemem : os.freemem()})
-    },1000);
-  });
-});
-
-socket.on('event', function(data){
-  console.log(data) ;
-});
-socket.on('schedulerArchives', function(data){
-  //debug(data);
-  DAEMON.Archives.schedulerArchives = data;
-});
-socket.on('clearCache', function(data){
-  //debug(data);
-  if (SECC.daemon.cache) {
-    redisClient.flushdb(function(err, didSucceed){
-      debug('redis flushed : %s', didSucceed);
-    });
-  }
-});
-socket.on('disconnect', function(){
-  console.log('socket.io - disconnected.')
-
-  if (DAEMON.loadReportTimer)
-    clearInterval(DAEMON.loadReportTimer);
-});
+//WebSocket.
+var daemonWebSocket = require('./routes/daemonWebSocket')(express, socket, SECC, DAEMON);
 
 //routers.
 var daemonIndex = require('./routes/daemonIndex')(express, socket, SECC, DAEMON);
