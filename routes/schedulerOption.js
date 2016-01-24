@@ -20,8 +20,12 @@ module.exports = function(express, io, SECC, SCHEDULER) {
       ) {
       return res.status(400).send('invalid options');
     }
+    var result = om.analyzeArguments(json.argv, json.compiler, json.cwd, json.mode);
 
-    res.send(om.analyzeArguments(json.argv, json.compiler, json.cwd, json.mode));
+    if (json.pretty)
+      res.send(JSON.stringify(result,null,2));
+    else
+      res.send(result);
   });
 
   router.get('/gcc', function (req, res) {
