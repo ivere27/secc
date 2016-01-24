@@ -86,13 +86,28 @@ io.on('connection', function(socket){
     debug(metaData);
   });
 
-  socket.on('systemInformation', function(metaData){
+  socket.on('daemonInformation', function(metaData){
     dm.setDaemonSystemInformation(socket.id
-      , {system : metaData, type:'daemon',maxJobs : metaData.numCPUs});
+      , { system  : { hostname : metaData.hostname
+                    , platform : metaData.platform
+                    , release  : metaData.release
+                    , arch     : metaData.arch
+                    , gcc      : metaData.gcc
+                    , clang    : metaData.clang
+                    }
+        , type    :'daemon'
+        , maxJobs : metaData.numCPUs
+        , cpus    : metaData.cpus
+        , networkInterfaces : metaData.networkInterfaces});
     io.emit('daemonList', dm.getDaemonList());
 
     debug('daemonList');
     debug(SCHEDULER.dm.getDaemonList());
+  });
+
+  socket.on('daemonLoad', function(metaData){
+    debug('load from %s', socket.id);
+    debug(metaData);
   });  
 
   //JOBs

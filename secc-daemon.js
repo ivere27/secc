@@ -77,7 +77,7 @@ var DAEMON = {
     localPumpArchives : [],
     localPumpArchivesInProgress : []
   },
-
+  loadReportTimer : null
 }
 
 var schedulerUrl = 'http://' + SECC.daemon.scheduler.address + ':' + SECC.daemon.scheduler.port;
@@ -90,18 +90,27 @@ socket.on('connect', function(){
     if(err) 
       return;
 
-    var systemInformation = environment.getSystemInformation(SECC);
+    var daemonInformation = environment.getSystemInformation(SECC);
     
     if(results.gcc)
-      systemInformation.gcc = results.gcc;
+      daemonInformation.gcc = results.gcc;
 
     if(results.clang)
-      systemInformation.clang = results.clang;
+      daemonInformation.clang = results.clang;
 
-    socket.emit('systemInformation', systemInformation);
+    daemonInformation.cpus = os.cpus();
+    daemonInformation.networkInterfaces = os.networkInterfaces();
+
+    socket.emit('daemonInformation', daemonInformation);
+
+    DAEMON.loadReportTimer = setInterval(function(){
+      socket.emit('daemonLoad', { loadavg : os.loadavg()
+                                , totalmem : os.totalmem()
+                                , freemem : os.freemem()})
+    },1000);
   });
-
 });
+
 socket.on('event', function(data){
   console.log(data) ;
 });
@@ -119,6 +128,9 @@ socket.on('clearCache', function(data){
 });
 socket.on('disconnect', function(){
   console.log('socket.io - disconnected.')
+
+  if (DAEMON.loadReportTimer)
+    clearInterval(DAEMON.loadReportTimer);
 });
 
 //routers.
