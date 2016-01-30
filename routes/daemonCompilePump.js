@@ -77,9 +77,9 @@ module.exports = function(express, socket, SECC, DAEMON) {
 
     compilePumpStream.on('finish', function(err, stdout, stderr, code, outArchive) {
       //console.log('finish');
-      if (stdout) res.setHeader('SECC-stdout', querystring.escape(stdout));
-      if (stderr) res.setHeader('SECC-stderr', querystring.escape(stderr));
-      if (code || code == 0) res.setHeader('SECC-code', code);
+      if (stdout) res.setHeader('secc-stdout', querystring.escape(stdout));
+      if (stderr) res.setHeader('secc-stderr', querystring.escape(stderr));
+      if (code || code == 0) res.setHeader('secc-code', code);
 
       if (err) {
         debug('compilePumpStream compile ERROR!!');

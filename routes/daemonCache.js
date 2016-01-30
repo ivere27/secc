@@ -65,9 +65,9 @@ module.exports = function(express, socket, SECC, DAEMON) {
 
       //obj['stderr'] is stored as String 'undefined' in redis.
       if (obj['stdout'].toString() !== 'undefined')
-        res.setHeader('SECC-stdout', querystring.escape(obj['stdout']));
+        res.setHeader('secc-stdout', querystring.escape(obj['stdout']));
       if (obj['stderr'].toString() !== 'undefined')
-        res.setHeader('SECC-stderr', querystring.escape(obj['stderr']));
+        res.setHeader('secc-stderr', querystring.escape(obj['stderr']));
 
       debug('hit the cache.');
       debug(metaData);

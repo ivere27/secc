@@ -1,7 +1,7 @@
 'use strict';
 
 var debug = require('debug')('secc:routes:schedulerOption');
-
+var utils = require('../lib/utils');
 var path = require('path');
 
 module.exports = function(express, io, SECC, SCHEDULER) {
@@ -20,12 +20,12 @@ module.exports = function(express, io, SECC, SCHEDULER) {
       ) {
       return res.status(400).send('invalid options');
     }
-    var result = om.analyzeArguments(json.argv, json.compiler, json.cwd, json.mode);
+    var data = om.analyzeArguments(json.argv, json.compiler, json.cwd, json.mode);
 
-    if (json.pretty)
-      res.send(JSON.stringify(result,null,2));
+    if (req.headers['accept'] === 'text/plain')
+      res.send(utils.ObjectToText(data));
     else
-      res.send(result);
+      res.send(data);
   });
 
   router.get('/gcc', function (req, res) {

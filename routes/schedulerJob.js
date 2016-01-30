@@ -1,7 +1,7 @@
 'use strict';
 
 var debug = require('debug')('secc:routes:schedulerJob');
-
+var utils = require('../lib/utils');
 var path = require('path');
 
 module.exports = function(express, io, SECC, SCHEDULER) {
@@ -128,21 +128,30 @@ module.exports = function(express, io, SECC, SCHEDULER) {
           archiveId : (candidateDaemons[bestDaemonId].cross) ? candidateDaemons[bestDaemonId].archiveId : archiveInfo.archiveId,
           timestamp: new Date()});
 
-        return res.json({
-          jobId : job.id,
-          local: false, 
-          cache: false, 
-          cross : candidateDaemons[bestDaemonId].cross,
-          daemon: dm.getDaemonInfo(bestDaemonId), 
-          archive: (candidateDaemons[bestDaemonId].cross)
-                    ? am.getArchiveInfo(candidateDaemons[bestDaemonId].archiveId)
-                    : archiveInfo
-        });
+          var data = {
+                    jobId : job.id,
+                    local: false, 
+                    cache: false, 
+                    cross : candidateDaemons[bestDaemonId].cross,
+                    daemon: dm.getDaemonInfo(bestDaemonId), 
+                    archive: (candidateDaemons[bestDaemonId].cross)
+                              ? am.getArchiveInfo(candidateDaemons[bestDaemonId].archiveId)
+                              : archiveInfo
+                  };
+
+          if (req.headers['accept'] === 'text/plain')
+            return res.send(utils.ObjectToText(data));
+          else
+            return res.json(data);
     }
 
     //no available daemon.
     jm.removeJob(job.id);
-    return res.json({local : true, error : { message : 'no available daemon'}});
+    var data = {local : true, error : { message : 'no available daemon'}};
+    if (req.headers['accept'] === 'text/plain')
+      res.send(utils.ObjectToText(data));
+    else
+      res.json(data);
   })
 
   return router;
