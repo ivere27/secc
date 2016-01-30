@@ -77,6 +77,9 @@ then, just use gcc as normal.
 gcc -c test.c
 ```
 
+#### Alternatives
+* (experimental) [secc-shell](http://github.com/ivere27/secc-shell) - bash shell frontend
+
 ### Daemon
 
 edit "daemon" part in 'settings.json' file.
