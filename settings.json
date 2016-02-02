@@ -12,6 +12,7 @@
 
   "daemonRemarks" : "secc-daemon",
   "daemon" : {
+    "maxCpuUsage" : 100,
     "port" : 10508,
     "scheduler" : {
       "address" : "127.0.0.1",

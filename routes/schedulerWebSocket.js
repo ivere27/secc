@@ -50,6 +50,8 @@ module.exports = function(express, io, SECC, SCHEDULER) {
                       }
           , type    :'daemon'
           , maxJobs : metaData.numCPUs
+          , numCPUs : metaData.numCPUs
+          , maxCpuUsage : metaData.maxCpuUsage
           , cpus    : metaData.cpus
           , networkInterfaces : metaData.networkInterfaces});
       io.emit('daemonList', dm.getDaemonList());
@@ -59,8 +61,10 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     });
 
     socket.on('daemonLoad', function(metaData){
-      //debug('load from %s', socket.id);
-      //debug(metaData);
+      dm.recalculateMaxJobs(socket.id,
+        { loadavg  : metaData.loadavg
+        , totalmem : metaData.totalmem
+        , freemem  : metaData.freemem});
     });  
 
     //JOBs

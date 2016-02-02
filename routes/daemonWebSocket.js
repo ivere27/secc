@@ -25,6 +25,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
 
       daemonInformation.cpus = os.cpus();
       daemonInformation.networkInterfaces = os.networkInterfaces();
+      daemonInformation.maxCpuUsage = SECC.daemon.maxCpuUsage || 100;
 
       socket.emit('daemonInformation', daemonInformation);
 
@@ -32,7 +33,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
         socket.emit('daemonLoad', { loadavg : os.loadavg()
                                   , totalmem : os.totalmem()
                                   , freemem : os.freemem()})
-      },1000);
+      },5000);
     });
   });
 
