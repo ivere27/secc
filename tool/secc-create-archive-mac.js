@@ -257,12 +257,12 @@ async.series([
     var keys = Object.keys(addList);
     keys.sort();
 
-    var hash = crypto.createHash('md5')
+    var hash = crypto.createHash('md5');
     keys.forEach(function(filePath){
       if (!addList[filePath]['symbolic'])
         hash.update(addList[filePath]['hash']);
 
-      command += ' ' + path.relative(tempDirectory, addList[filePath]['tempPath'])
+      command += ' ' + path.relative(tempDirectory, addList[filePath]['tempPath']);
     });
 
     contentsHash = hash.digest("hex");
