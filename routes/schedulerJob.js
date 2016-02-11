@@ -92,13 +92,20 @@ module.exports = function(express, io, SECC, SCHEDULER) {
             archiveId : archiveInfo.archiveId,
             timestamp: new Date()});
 
-          return res.json({
+          var data = {
             jobId : job.id,
             local: false, 
             cache: true, 
             cross : false,
             daemon: dm.getDaemonInfo(bestDaemonId), 
-            archive: archiveInfo});
+            archive: archiveInfo};
+
+          if (req.headers['accept'] === 'text/plain')
+            return res.send(utils.ObjectToText(data));
+          else
+            return res.json(data);
+
+
       } //no available cache in same machine
     }
 
