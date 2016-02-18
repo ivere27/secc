@@ -79,6 +79,7 @@ gcc -c test.c
 
 #### Alternatives
 * (experimental) [secc-shell](http://github.com/ivere27/secc-shell) - bash shell frontend
+* (experimental) [secc-native](http://github.com/ivere27/secc-native) - native(c++) frontend
 
 ### Daemon
 
