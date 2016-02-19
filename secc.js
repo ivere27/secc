@@ -146,8 +146,8 @@ require('async').waterfall([
       argv : job.argv
     }; 
     var options = {
-      hostname: settings.client.scheduler.address,
-      port: settings.client.scheduler.port,
+      hostname: process.env.SECC_ADDRESS || settings.client.scheduler.address,
+      port: process.env.SECC_PORT || settings.client.scheduler.port,
       path: '/option/analyze',
       method: 'POST',
       headers : {'Content-Type': 'application/json'}
