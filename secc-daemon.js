@@ -24,11 +24,24 @@ if (SECC.daemon.cache) { //cache enabled.
     debug(err);
   });
 
-  redisClient.send_command("config", ['set','maxmemory',SECC.daemon.redis.maxmemory], function(err,replay){
+  var maxmemoryPolicy = SECC.daemon.redis['maxmemory-policy'];
+  var maxmemory = SECC.daemon.redis['maxmemory'] || "256MB";
+  maxmemory = String(maxmemory);
+  if (maxmemory.match(/KB$/))
+    maxmemory = parseInt(maxmemory) * 1024;
+  else if (maxmemory.match(/MB$/))
+    maxmemory = parseInt(maxmemory) * 1024 * 1024;
+  else if (maxmemory.match(/GB$/))
+    maxmemory = parseInt(maxmemory) * 1024 * 1024 * 1024;
+  else
+    maxmemory = parseInt(maxmemory);
+
+  debug("maxmemory : %s, maxmemory-policy : %s", maxmemory, maxmemoryPolicy);
+  redisClient.send_command("config", ['set','maxmemory', maxmemory], function(err,replay){
     debug(err);
     debug('redisClient'+replay.toString());
   });
-  redisClient.send_command("config", ['set','maxmemory-policy', SECC.daemon.redis['maxmemory-policy']], function(err,replay){
+  redisClient.send_command("config", ['set','maxmemory-policy', maxmemoryPolicy], function(err,replay){
     debug(err);
     debug('redisClient'+ replay.toString());
   });
