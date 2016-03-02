@@ -21,6 +21,23 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     debug('/job/new request fired!!');
     debug(json);
 
+    if ( !json.systemInformation
+      || !json.systemInformation.platform
+      || !json.systemInformation.arch
+      || !json.compilerInformation
+      || !json.compilerInformation.dumpversion
+      || !json.compilerInformation.dumpmachine
+      || !json.mode
+      || !json.projectId
+      || (typeof json.cachePrefered !== 'boolean')
+      || (typeof json.crossPrefered !== 'boolean')
+      || !json.sourcePath
+      || !json.sourceHash
+      || !json.argvHash) {
+      debug('wrong request.');
+      return res.status(400).send('wrong request.');
+    }
+
     var job = jm.newJob({
       systemInformation : json.systemInformation,
       compilerInformation : json.compilerInformation,
