@@ -16,9 +16,9 @@ var upload = multer({dest:'./uploads/'}).single('source');
 var redisClient = null;
 if (SECC.daemon.cache) { //cache enabled.
   debug('cache is enabled. set maxmemory and policy');
-  redisClient =  require("redis").createClient(SECC.daemon.redis.port
-                                    , SECC.daemon.redis.address
-                                    , {'return_buffers': true});
+  redisClient =  require("redis").createClient( SECC.daemon.redis.port
+                                              , SECC.daemon.redis.address
+                                              , {'return_buffers': true});
 
   redisClient.on("error", function (err) {
     debug(err);
@@ -36,14 +36,15 @@ if (SECC.daemon.cache) { //cache enabled.
   else
     maxmemory = parseInt(maxmemory);
 
-  debug("maxmemory : %s, maxmemory-policy : %s", maxmemory, maxmemoryPolicy);
   redisClient.send_command("config", ['set','maxmemory', maxmemory], function(err,replay){
-    debug(err);
-    debug('redisClient'+replay.toString());
+    if (err)
+      return debug(err);
+    debug("maxmemory : %d MB(%s bytes) - redisClient : %s", parseInt(maxmemory/(1024*1024)), maxmemory, replay.toString());
   });
   redisClient.send_command("config", ['set','maxmemory-policy', maxmemoryPolicy], function(err,replay){
-    debug(err);
-    debug('redisClient'+ replay.toString());
+    if (err)
+      return debug(err);
+    debug("maxmemory-policy : %s - redisClient : %s", maxmemoryPolicy, replay.toString());
   });
 }
 
