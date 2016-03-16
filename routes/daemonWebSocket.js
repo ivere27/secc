@@ -5,7 +5,7 @@ var os = require('os');
 
 var environment = require('../lib/environment.js');
 
-module.exports = function(express, socket, SECC, DAEMON) {
+module.exports = function(socket, SECC, DAEMON) {
 
   socket.on('connect', function(){
     //console.log(socket);
@@ -40,10 +40,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
   socket.on('event', function(data){
     debug(data) ;
   });
-  socket.on('schedulerArchives', function(data){
-    //debug(data);
-    DAEMON.Archives.schedulerArchives = data;
-  });
+
   socket.on('clearCache', function(data){
     //debug(data);
     if (SECC.daemon.cache) {

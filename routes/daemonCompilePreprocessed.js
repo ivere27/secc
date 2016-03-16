@@ -20,6 +20,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
   var compileWrapper = function(req, res, options) {
     var jobId = req.headers['secc-jobid'] || null;
     if (socket.connected && jobId) socket.emit('compileBefore', { jobId: jobId });
+    DAEMON.worker.emit('compileBefore', { jobId: jobId });
 
     var options = options || {};
 
@@ -69,8 +70,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
     var compilePipeStream = new compile.CompileStream(options);
 
     compilePipeStream.on('cacheStored', function(data){
-      if (socket.connected)
-        socket.emit('cacheStored', data);
+      DAEMON.worker.emit('cacheStored', data);
     });
 
     compilePipeStream.on('finish', function(err, stdout, stderr, code, outArchive) {
@@ -85,6 +85,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
         debug(err);
 
         if (socket.connected && jobId) socket.emit('compileAfter', { jobId: jobId , error: err.message });
+        DAEMON.worker.emit('compileAfter', { jobId: jobId , error: err.message });
 
         return res.status(400).send(err.message);
       }
@@ -94,6 +95,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
       output.pipe(res);
 
       if (socket.connected && jobId) socket.emit('compileAfter', { jobId: jobId });
+      DAEMON.worker.emit('compileAfter', { jobId: jobId });
     });
 
     if (contentEncoding === 'gzip') {
@@ -121,6 +123,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
       debug('unknown archiveId. not exists in Archives.schedulerArchives.');
 
       if (socket.connected && jobId) socket.emit('compileLocal', { jobId: jobId });
+      DAEMON.worker.emit('compileLocal', { jobId: jobId });
       return res.status(400).send('unknown archiveId.');
     }
 
@@ -128,6 +131,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
     if (Archives.localPrepArchiveIdInProgress.indexOf(archiveId) !== -1 ) {
       debug('archiveId %s is working in progress.', archiveId);
       if (socket.connected && jobId) socket.emit('compileLocal', { jobId: jobId });
+      DAEMON.worker.emit('compileLocal', { jobId: jobId });
       return res.status(400).send('archiveId is working in progress.');
     }
 
@@ -135,6 +139,8 @@ module.exports = function(express, socket, SECC, DAEMON) {
     if (Archives.localPrepArchiveId.indexOf(archiveId) === -1) {
       debug('archiveId %s is not installed. will be install.', archiveId);
       Archives.localPrepArchiveIdInProgress.push(archiveId);
+      DAEMON.worker.broadcast('addLocalPrepArchiveIdInProgress', {archiveId : archiveId });
+
       process.nextTick(function(){
         //download from scheduler. FIXME : make as a function. and loop.
         var fs = require('fs');
@@ -165,18 +171,21 @@ module.exports = function(express, socket, SECC, DAEMON) {
             Archives.localPrepArchiveIdInProgress.filter(function(e){
               return e !== archiveIdToInstall;
             })
-
+          DAEMON.worker.broadcast('removeLocalPrepArchiveIdInProgress', {archiveId : archiveIdToInstall });
           Archives.localPrepArchiveId.push(archiveIdToInstall);
+          DAEMON.worker.broadcast('addLocalPrepArchiveId', {archiveId : archiveIdToInstall });
         }).on('error',function(err){
           debug(err);
           Archives.localPrepArchiveIdInProgress = 
             Archives.localPrepArchiveIdInProgress.filter(function(e){
               return e !== archiveId;
             })
+          DAEMON.worker.broadcast('removeLocalPrepArchiveIdInProgress', {archiveId : archiveId });
         });
 
       });
       if (socket.connected && jobId) socket.emit('compileLocal', { jobId: jobId });
+      DAEMON.worker.emit('compileLocal', { jobId: jobId });
       return res.status(400).send('archiveId is not installed.'); 
     }
 
