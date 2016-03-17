@@ -171,6 +171,12 @@ if (cluster.isWorker) {
         });
     } else if (msg.event === 'addLocalPrepArchiveId') {
       DAEMON.Archives.localPrepArchiveId.push(msg.data.archiveId);
+    } else if (msg.event === 'addLocalPumpArchivesInProgress') {
+      DAEMON.Archives.localPumpArchivesInProgress.push(msg.data.pumpArchive);
+    } else if (msg.event === 'removeLocalPumpArchivesInProgress') {
+      utils.removePumpArchiveInArray(DAEMON.Archives.localPumpArchivesInProgress, msg.data.pumpArchive.pumpArchiveId);
+    } else if (msg.event === 'addLocalPumpArchives') {
+      DAEMON.Archives.localPumpArchives.push(msg.data.pumpArchive);
     }
   });
 
