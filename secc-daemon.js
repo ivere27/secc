@@ -4,6 +4,7 @@ var os = require('os');
 var debug = require('debug')('secc:daemon');
 
 if (cluster.isMaster) {
+  debug = require('debug')('secc:daemon:master');
   var SECC = require('./settings.json');
 
   var redisClient = null;
@@ -65,12 +66,14 @@ if (cluster.isMaster) {
     }
   };
 
-  for (var i = 0; i < os.cpus().length; i++) {
-    var worker = cluster.fork();
-    worker.on('message', function(msg){
-      return clusterMessageHandler(worker, msg);
+  for (var i = 0; i < os.cpus().length; i++)
+    cluster.fork();
+
+  Object.keys(cluster.workers).forEach(function(id) {
+    cluster.workers[id].on('message', function(msg) {
+      clusterMessageHandler(cluster.workers[id], msg);
     });
-  }
+  });
 
   cluster.on('exit', function(worker, code, signal) {
     console.log('worker ' + worker.process.pid + ' died');
@@ -78,10 +81,11 @@ if (cluster.isMaster) {
     worker.on('message', function(msg){
       return clusterMessageHandler(worker, msg);
     });
-  }); 
+  });
 }
 
 if (cluster.isWorker) {
+  debug = require('debug')('secc:daemon:' + cluster.worker.id);
   var SECC = require('./settings.json');
   var crypto = require('crypto');
   var path = require('path');
@@ -140,8 +144,9 @@ if (cluster.isWorker) {
     redisClient : redisClient,
     Archives : {
       schedulerArchives : [],
-      localPrepArchiveId : [],
-      localPrepArchiveIdInProgress : [],
+
+      localPrepArchiveId : {},
+      localPrepArchiveIdInProgress : {},
 
       //FIXME, currently store {pumpArchiveId, archive, archivePath}
       localPumpArchives : [],
@@ -163,14 +168,11 @@ if (cluster.isWorker) {
   cluster.worker.on('message', function(msg) {
     debug(msg);
     if (msg.event === 'addLocalPrepArchiveIdInProgress') {
-      DAEMON.Archives.localPrepArchiveIdInProgress.push(msg.data.archiveId);
+      DAEMON.Archives.localPrepArchiveIdInProgress[msg.data.archiveId] = new Date();
     } else if (msg.event === 'removeLocalPrepArchiveIdInProgress') {
-      DAEMON.Archives.localPrepArchiveIdInProgress = 
-        DAEMON.Archives.localPrepArchiveIdInProgress.filter(function(e){
-          return e !== msg.data.archiveId;
-        });
+      delete DAEMON.Archives.localPrepArchiveIdInProgress[msg.data.archiveId];
     } else if (msg.event === 'addLocalPrepArchiveId') {
-      DAEMON.Archives.localPrepArchiveId.push(msg.data.archiveId);
+      DAEMON.Archives.localPrepArchiveId[msg.data.archiveId] = new Date();
     } else if (msg.event === 'addLocalPumpArchivesInProgress') {
       DAEMON.Archives.localPumpArchivesInProgress.push(msg.data.pumpArchive);
     } else if (msg.event === 'removeLocalPumpArchivesInProgress') {
@@ -201,8 +203,6 @@ if (cluster.isWorker) {
   var server = app.listen(SECC.daemon.port, function () {
     var host = server.address().address;
     var port = server.address().port;
-
-    //console.log(server);
 
     console.log('SECC listening at http://%s:%s', host, port);
   });

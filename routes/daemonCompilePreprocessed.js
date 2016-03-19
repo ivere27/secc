@@ -74,7 +74,6 @@ module.exports = function(express, socket, SECC, DAEMON) {
     });
 
     compilePipeStream.on('finish', function(err, stdout, stderr, code, outArchive) {
-      //console.log('finish');
       if (stdout) res.setHeader('secc-stdout', querystring.escape(stdout));
       if (stderr) res.setHeader('secc-stderr', querystring.escape(stderr));
       if (code || code == 0) res.setHeader('secc-code', code);
@@ -114,7 +113,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
   router.post('/:archiveId', function (req, res) {
     var jobId = req.headers['secc-jobid'] || null;
     var archiveId = req.params.archiveId;
-    console.log(req.params.archiveId);
+
     var archive = utils.getArchiveInArray(Archives.schedulerArchives, archiveId);
     var archivePath = path.join(SECC.runPath, 'preprocessed', archiveId);
 
@@ -128,7 +127,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
     }
 
     //check WIP in Archives.localPrepArchiveIdInProgress.
-    if (Archives.localPrepArchiveIdInProgress.indexOf(archiveId) !== -1 ) {
+    if (Archives.localPrepArchiveIdInProgress.hasOwnProperty(archiveId)) {
       debug('archiveId %s is working in progress.', archiveId);
       if (socket.connected && jobId) socket.emit('compileLocal', { jobId: jobId });
       DAEMON.worker.emit('compileLocal', { jobId: jobId });
@@ -136,15 +135,15 @@ module.exports = function(express, socket, SECC, DAEMON) {
     }
 
     //check in localPrepArchiveIdInProgress(already installed or not)
-    if (Archives.localPrepArchiveId.indexOf(archiveId) === -1) {
+    if (!Archives.localPrepArchiveId.hasOwnProperty(archiveId)) {
       debug('archiveId %s is not installed. will be install.', archiveId);
-      Archives.localPrepArchiveIdInProgress.push(archiveId);
+      Archives.localPrepArchiveIdInProgress[archiveId] = new Date();
       DAEMON.worker.broadcast('addLocalPrepArchiveIdInProgress', {archiveId : archiveId });
 
       process.nextTick(function(){
         //download from scheduler. FIXME : make as a function. and loop.
         var fs = require('fs');
-        var archiveIdToInstall = Archives.localPrepArchiveIdInProgress[Archives.localPrepArchiveIdInProgress.length-1];
+        var archiveIdToInstall = Object.keys(Archives.localPrepArchiveIdInProgress)[0];
 
         var schedulerUrl = 'http://' + SECC.daemon.scheduler.address + ':' + SECC.daemon.scheduler.port;
         var url = schedulerUrl
@@ -167,20 +166,15 @@ module.exports = function(express, socket, SECC, DAEMON) {
           fs.createReadStream(path.join(SECC.toolPath,'chdir.sh'))
             .pipe(fs.createWriteStream(path.join(archivePath,'chdir.sh')));
 
-          Archives.localPrepArchiveIdInProgress = 
-            Archives.localPrepArchiveIdInProgress.filter(function(e){
-              return e !== archiveIdToInstall;
-            })
+          delete Archives.localPrepArchiveIdInProgress[archiveIdToInstall];
           DAEMON.worker.broadcast('removeLocalPrepArchiveIdInProgress', {archiveId : archiveIdToInstall });
-          Archives.localPrepArchiveId.push(archiveIdToInstall);
+
+          Archives.localPrepArchiveId[archiveIdToInstall] = new Date();
           DAEMON.worker.broadcast('addLocalPrepArchiveId', {archiveId : archiveIdToInstall });
         }).on('error',function(err){
           debug(err);
-          Archives.localPrepArchiveIdInProgress = 
-            Archives.localPrepArchiveIdInProgress.filter(function(e){
-              return e !== archiveId;
-            })
-          DAEMON.worker.broadcast('removeLocalPrepArchiveIdInProgress', {archiveId : archiveId });
+          delete Archives.localPrepArchiveIdInProgress[archiveIdToInstall];
+          DAEMON.worker.broadcast('removeLocalPrepArchiveIdInProgress', {archiveId : archiveIdToInstall });
         });
 
       });
