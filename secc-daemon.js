@@ -1,10 +1,10 @@
 'use strict';
 var cluster = require('cluster');
 var os = require('os');
-var debug = require('debug')('secc:daemon');
+var debug = require('debug')('secc:'+process.pid+':daemon');
 
 if (cluster.isMaster) {
-  debug = require('debug')('secc:daemon:master');
+  debug = require('debug')('secc:'+process.pid+':daemon:master');
   var SECC = require('./settings.json');
 
   var redisClient = null;
@@ -85,7 +85,7 @@ if (cluster.isMaster) {
 }
 
 if (cluster.isWorker) {
-  debug = require('debug')('secc:daemon:' + cluster.worker.id);
+  debug = require('debug')('secc:'+process.pid+':daemon:' + cluster.worker.id);
   var SECC = require('./settings.json');
   var crypto = require('crypto');
   var path = require('path');

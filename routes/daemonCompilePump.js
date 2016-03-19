@@ -1,6 +1,6 @@
 'use strict';
 
-var debug = require('debug')('secc:routes:daemonCompilePump');
+var debug = require('debug')('secc:'+process.pid+':routes:daemonCompilePump');
 
 var mkdirp = require('mkdirp');
 var path = require('path');

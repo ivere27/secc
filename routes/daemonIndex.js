@@ -1,6 +1,6 @@
 'use strict';
 
-var debug = require('debug')('secc:routes:daemonIndex');
+var debug = require('debug')('secc:'+process.pid+':routes:daemonIndex');
 
 module.exports = function(express, socket, SECC, DAEMON) {
   var router = express.Router();

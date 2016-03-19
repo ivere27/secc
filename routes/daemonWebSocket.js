@@ -1,6 +1,6 @@
 'use strict';
 
-var debug = require('debug')('secc:routes:daemonWebSocket');
+var debug = require('debug')('secc:'+process.pid+':routes:daemonWebSocket');
 var os = require('os');
 
 var environment = require('../lib/environment.js');
