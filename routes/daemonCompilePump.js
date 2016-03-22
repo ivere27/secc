@@ -225,12 +225,15 @@ module.exports = function(express, socket, SECC, DAEMON) {
         debug("download %s", url);
 
         var request = require('request');
-        var targz = require('node-tar.gz');
-
         var read = request.get(url);
-        var write = targz().createWriteStream(pumpArchiveToInstall.archivePath);
-         
-        read.pipe(write).on('finish',function(){
+
+        var extract = require('tar').Extract({path: pumpArchiveToInstall.archivePath});
+        extract.on('error', function(err) {
+          debug(err);
+          utils.removePumpArchiveInArray(Archives.localPumpArchivesInProgress, pumpArchiveToInstall.pumpArchiveId);
+          DAEMON.worker.broadcast('removeLocalPumpArchivesInProgress', {pumpArchive : pumpArchiveToInstall });
+        });
+        extract.on('end',function(){
           debug('download and extract done : %s', pumpArchiveToInstall.archivePath);
           mkdirp.sync(path.join(pumpArchiveToInstall.archivePath, 'tmp'));
 
@@ -242,12 +245,9 @@ module.exports = function(express, socket, SECC, DAEMON) {
           DAEMON.worker.broadcast('removeLocalPumpArchivesInProgress', {pumpArchive : pumpArchiveToInstall });
           Archives.localPumpArchives.push(pumpArchiveToInstall);
           DAEMON.worker.broadcast('addLocalPumpArchives', {pumpArchive : pumpArchiveToInstall });
-        }).on('error',function(err){
-          debug(err);
-          utils.removePumpArchiveInArray(Archives.localPumpArchivesInProgress, pumpArchiveToInstall.pumpArchiveId);
-          DAEMON.worker.broadcast('removeLocalPumpArchivesInProgress', {pumpArchive : pumpArchiveToInstall });
         });
 
+        read.pipe(zlib.createGunzip()).pipe(extract);
       });
 
       return deleteAllUploadFiles(req.file, function(err){

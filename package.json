@@ -1,7 +1,7 @@
 {
   "name": "secc",
   "description": "Distributed compiler with modern web technology",
-  "version": "0.2.24",
+  "version": "0.2.26",
   "author": {
     "name": "HoYong Jung",
     "email": ""
@@ -36,7 +36,6 @@
     "mkdirp" : "0.5.1",
     "morgan" : "1.6.1",
     "multer" : "1.0.3",
-    "node-tar.gz" : "1.0.0",
     "posix" : "2.0.1",
     "redis" : "2.0.1",
     "request" : "2.67.0",

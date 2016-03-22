@@ -153,12 +153,15 @@ module.exports = function(express, socket, SECC, DAEMON) {
         debug("download %s", url);
 
         var request = require('request');
-        var targz = require('node-tar.gz');
-
         var read = request.get(url);
-        var write = targz().createWriteStream(archivePath);
-         
-        read.pipe(write).on('finish',function(){
+
+        var extract = require('tar').Extract({path: archivePath});
+        extract.on('error', function(err) {
+          debug(err);
+          delete Archives.localPrepArchiveIdInProgress[archiveIdToInstall];
+          DAEMON.worker.broadcast('removeLocalPrepArchiveIdInProgress', {archiveId : archiveIdToInstall });
+        });
+        extract.on('end',function(){
           debug('download and extract done : %s', archivePath);
           mkdirp.sync(path.join(archivePath, 'tmp'));
 
@@ -171,12 +174,9 @@ module.exports = function(express, socket, SECC, DAEMON) {
 
           Archives.localPrepArchiveId[archiveIdToInstall] = new Date();
           DAEMON.worker.broadcast('addLocalPrepArchiveId', {archiveId : archiveIdToInstall });
-        }).on('error',function(err){
-          debug(err);
-          delete Archives.localPrepArchiveIdInProgress[archiveIdToInstall];
-          DAEMON.worker.broadcast('removeLocalPrepArchiveIdInProgress', {archiveId : archiveIdToInstall });
         });
 
+        read.pipe(zlib.createGunzip()).pipe(extract);
       });
       if (socket.connected && jobId) socket.emit('compileLocal', { jobId: jobId });
       DAEMON.worker.emit('compileLocal', { jobId: jobId });
