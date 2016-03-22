@@ -1,7 +1,7 @@
 {
   "name": "secc",
   "description": "Distributed compiler with modern web technology",
-  "version": "0.2.22",
+  "version": "0.2.24",
   "author": {
     "name": "HoYong Jung",
     "email": ""
@@ -26,7 +26,6 @@
     "clang"
   ],
   "dependencies": {
-    "archiver" : "0.15.1",
     "async" : "1.4.2",
     "body-parser" : "1.13.3",
     "compression" : "1.5.2",
