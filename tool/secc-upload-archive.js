@@ -3,7 +3,8 @@
 
 var crypto = require('crypto');
 var fs = require("fs");
-var request = require("request");
+var http = require('http');
+var url = require('url');
 var path = require('path');
 
 var SECC = require('../package.json');
@@ -86,30 +87,44 @@ function final() {
   console.log('JSON string\n', JSON.stringify(archive));
   console.log('\n\n');
 
-  uploadArchive(archive, function(err, httpResponse){
-    if (err)
-      return console.log(err);
-
-    console.log('Scheduler server responded with : ', httpResponse.body);
-    console.log('\n');
-    
-    if (httpResponse.statusCode == 200)
-      console.log('Upload done successfully!\n');
-  });
-}
-
-function uploadArchive(archive, cb) {
   console.log('upload the archive file - ', archive.archiveFile);
+  var FormData = require('form-data');
+  var form = new FormData();
 
-  var r = request.post(schedulerUrl + '/archive', function optionalCallback(err, httpResponse, body) {
-    if (err) return cb(err);
-    
-    cb(null, httpResponse);
+  var urlObject = url.parse(schedulerUrl + '/archive');
+  var options = {
+    hostname : urlObject.hostname,
+    port : urlObject.port,
+    path : urlObject.path,
+    method : 'POST',
+    headers : form.getHeaders()
+  };
+
+  var req = http.request(options);
+  req.on('error', function(err) {return console.error(err);})
+  req.setTimeout(60*1000, function(){
+    this.abort();
+    return console.error(new Error('Timeout in uploading the archive'));
+  });
+  req.on('response', function (res) {
+    var data = '';
+    res.on('data', function(chunk){data += chunk;});
+    res.on('end', function(){
+      if (res.statusCode !== 200) {
+        console.error(data);
+        return console.error(new Error('Error raised in uploading the archive'));
+      }
+
+      console.log('Scheduler server responded with : ' + data);
+      console.log('\n');
+      console.log('Upload done successfully!\n');
+    });
   });
 
-  var form = r.form();
   form.append('archive', JSON.stringify(archive));
-  form.append('archiveFile', fs.createReadStream(__dirname + '/' + archive.archiveFile), {filename: archive.archiveFile});
+  form.append('archiveFile', fs.createReadStream(archive.archiveFile), {filename: archive.archiveFile});
+
+  form.pipe(req);
 }
 
 function callChildProcess(command, cb) {
