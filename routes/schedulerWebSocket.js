@@ -14,9 +14,15 @@ module.exports = function(express, io, SECC, SCHEDULER) {
   //sockets.
   io.on('connection', function(socket){
     debug('io connect!!! %s', socket.id);
+
+    var daemonAddress = socket.handshake.address;
+    var idx = daemonAddress.lastIndexOf(':');
+    if (~idx && ~daemonAddress.indexOf('.'))
+      daemonAddress = daemonAddress.slice(idx + 1);
+
     var newDaemon = { daemonId: socket.id, 
       jobs: 0, maxJobs: 0, type: 'guest', 
-      daemonAddress : socket.handshake.address };
+      daemonAddress : daemonAddress };
     dm.addDaemon(newDaemon);
     
     //send current Archives
