@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 'use strict';
 
-var request = require("request");
+var http = require('http');
 var path = require('path');
+var url = require('url');
 
 var SECC = require('../package.json');
 
@@ -34,16 +35,46 @@ function howto() {
 }
 
 function send(method, uri) {
-  request({method: method, uri: uri}, function optionalCallback(err, httpResponse, body) {
-    if (err) return console.error(err);
-    if (httpResponse.statusCode !== 200) return console.error(body);
-    try {
-      body = JSON.parse(body);
-    } finally {
-      return console.log((typeof body === 'object') ? JSON.stringify(body, null, 2) 
-                                                    : body);
-    }
+  var urlObject = url.parse(uri);
+  var options = {
+    hostname : urlObject.hostname,
+    port : urlObject.port,
+    path : urlObject.path,
+    method : method
+  };
+
+  var req = http.request(options);
+  req.on('error', function(err){return console.error(err);});
+  req.setTimeout(5*1000, function(){
+    this.abort();
+    return console.error(new Error('Timeout in request ' + urlObject.path));
   });
+  req.on('response', function (res) {
+    var data = '';
+    res.on('data', function(chunk){data += chunk;});
+    res.on('end', function(){
+      if(res.statusCode !== 200) {
+        console.error(data);
+        return console.error(new Error('Error raised in ' + urlObject.path));
+      }
+
+      if (res.headers['content-type'].indexOf('application/json') !== -1) {
+        try {
+          data = JSON.parse(data);
+        } catch(e) {
+          console.error(e);
+          console.error(data);
+          return;
+        }
+      }
+
+      return console.log((typeof data === 'object')
+                          ? JSON.stringify(data, null, 2)
+                          : data);
+    });
+  });
+  //req.write();
+  req.end();
 }
 
 var uri = schedulerUrl + '/archive/';
