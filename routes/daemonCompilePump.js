@@ -217,37 +217,51 @@ module.exports = function(express, socket, SECC, DAEMON) {
         var fs = require('fs');
         var pumpArchiveToInstall = Archives.localPumpArchivesInProgress[Archives.localPumpArchivesInProgress.length-1];
 
-        var schedulerUrl = 'http://' + SECC.daemon.scheduler.address + ':' + SECC.daemon.scheduler.port;
-        var url = schedulerUrl
-                + '/archive/' + pumpArchiveToInstall.archive.archiveId 
-                + '/file/';
-        
-        debug("download %s", url);
+        var http = require('http');
+        var options = {
+          hostname: SECC.daemon.scheduler.address,
+          port: SECC.daemon.scheduler.port,
+          path: '/archive/' + pumpArchiveToInstall.archive.archiveId + '/file/',
+          method: 'GET'
+        };
 
-        var request = require('request');
-        var read = request.get(url);
+        debug("download %s", options.path);
 
-        var extract = require('tar').Extract({path: pumpArchiveToInstall.archivePath});
-        extract.on('error', function(err) {
-          debug(err);
-          utils.removePumpArchiveInArray(Archives.localPumpArchivesInProgress, pumpArchiveToInstall.pumpArchiveId);
-          DAEMON.worker.broadcast('removeLocalPumpArchivesInProgress', {pumpArchive : pumpArchiveToInstall });
+        var req = http.request(options);
+        req.on('error', function(err) {return debug(err);})
+        req.setTimeout(60000, function(){
+            //FIXME : report to the scheduler.
+            return debug(new Error('Timeout in downloading the archive file'));
         });
-        extract.on('end',function(){
-          debug('download and extract done : %s', pumpArchiveToInstall.archivePath);
-          mkdirp.sync(path.join(pumpArchiveToInstall.archivePath, 'tmp'));
+        req.on('response', function(res) {
+          if(res.statusCode !== 200) {
+            this.abort();
+            //FIXME : report to the scheduler.
+            return debug(new Error('Timeout in downloading the archive file'));
+          }
 
-          debug('copy chdir.sh to archivePath');
-          fs.createReadStream(path.join(SECC.toolPath,'chdir.sh'))
-            .pipe(fs.createWriteStream(path.join(pumpArchiveToInstall.archivePath,'chdir.sh')));
+          var extract = require('tar').Extract({path: pumpArchiveToInstall.archivePath});
+          extract.on('error', function(err) {
+            debug(err);
+            utils.removePumpArchiveInArray(Archives.localPumpArchivesInProgress, pumpArchiveToInstall.pumpArchiveId);
+            DAEMON.worker.broadcast('removeLocalPumpArchivesInProgress', {pumpArchive : pumpArchiveToInstall });
+          });
+          extract.on('end',function(){
+            debug('download and extract done : %s', pumpArchiveToInstall.archivePath);
+            mkdirp.sync(path.join(pumpArchiveToInstall.archivePath, 'tmp'));
 
-          utils.removePumpArchiveInArray(Archives.localPumpArchivesInProgress, pumpArchiveToInstall.pumpArchiveId);
-          DAEMON.worker.broadcast('removeLocalPumpArchivesInProgress', {pumpArchive : pumpArchiveToInstall });
-          Archives.localPumpArchives.push(pumpArchiveToInstall);
-          DAEMON.worker.broadcast('addLocalPumpArchives', {pumpArchive : pumpArchiveToInstall });
+            debug('copy chdir.sh to archivePath');
+            fs.createReadStream(path.join(SECC.toolPath,'chdir.sh'))
+              .pipe(fs.createWriteStream(path.join(pumpArchiveToInstall.archivePath,'chdir.sh')));
+
+            utils.removePumpArchiveInArray(Archives.localPumpArchivesInProgress, pumpArchiveToInstall.pumpArchiveId);
+            DAEMON.worker.broadcast('removeLocalPumpArchivesInProgress', {pumpArchive : pumpArchiveToInstall });
+            Archives.localPumpArchives.push(pumpArchiveToInstall);
+            DAEMON.worker.broadcast('addLocalPumpArchives', {pumpArchive : pumpArchiveToInstall });
+          });
+          res.pipe(zlib.createGunzip()).pipe(extract);
         });
-
-        read.pipe(zlib.createGunzip()).pipe(extract);
+        req.end();
       });
 
       return deleteAllUploadFiles(req.file, function(err){

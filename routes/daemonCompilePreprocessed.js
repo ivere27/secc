@@ -145,38 +145,53 @@ module.exports = function(express, socket, SECC, DAEMON) {
         var fs = require('fs');
         var archiveIdToInstall = Object.keys(Archives.localPrepArchiveIdInProgress)[0];
 
-        var schedulerUrl = 'http://' + SECC.daemon.scheduler.address + ':' + SECC.daemon.scheduler.port;
-        var url = schedulerUrl
-                + '/archive/' + archiveIdToInstall
-                + '/file/';
+        var http = require('http');
+        var options = {
+          hostname: SECC.daemon.scheduler.address,
+          port: SECC.daemon.scheduler.port,
+          path: '/archive/' + archiveIdToInstall + '/file/',
+          method: 'GET'
+        };
 
-        debug("download %s", url);
+        debug("download %s", options.path);
 
-        var request = require('request');
-        var read = request.get(url);
-
-        var extract = require('tar').Extract({path: archivePath});
-        extract.on('error', function(err) {
-          debug(err);
-          delete Archives.localPrepArchiveIdInProgress[archiveIdToInstall];
-          DAEMON.worker.broadcast('removeLocalPrepArchiveIdInProgress', {archiveId : archiveIdToInstall });
+        var req = http.request(options);
+        req.on('error', function(err) {return debug(err);})
+        req.setTimeout(60000, function(){
+            //FIXME : report to the scheduler.
+            return debug(new Error('Timeout in downloading the archive file'));
         });
-        extract.on('end',function(){
-          debug('download and extract done : %s', archivePath);
-          mkdirp.sync(path.join(archivePath, 'tmp'));
+        req.on('response', function(res) {
+          if(res.statusCode !== 200) {
+            this.abort();
+            //FIXME : report to the scheduler.
+            return debug(new Error('Timeout in downloading the archive file'));
+          }
 
-          debug('copy chdir.sh to archivePath');
-          fs.createReadStream(path.join(SECC.toolPath,'chdir.sh'))
-            .pipe(fs.createWriteStream(path.join(archivePath,'chdir.sh')));
+          var extract = require('tar').Extract({path: archivePath});
+          extract.on('error', function(err) {
+            debug(err);
+            delete Archives.localPrepArchiveIdInProgress[archiveIdToInstall];
+            DAEMON.worker.broadcast('removeLocalPrepArchiveIdInProgress', {archiveId : archiveIdToInstall });
+          });
+          extract.on('end',function(){
+            debug('download and extract done : %s', archivePath);
+            mkdirp.sync(path.join(archivePath, 'tmp'));
 
-          delete Archives.localPrepArchiveIdInProgress[archiveIdToInstall];
-          DAEMON.worker.broadcast('removeLocalPrepArchiveIdInProgress', {archiveId : archiveIdToInstall });
+            debug('copy chdir.sh to archivePath');
+            fs.createReadStream(path.join(SECC.toolPath,'chdir.sh'))
+              .pipe(fs.createWriteStream(path.join(archivePath,'chdir.sh')));
 
-          Archives.localPrepArchiveId[archiveIdToInstall] = new Date();
-          DAEMON.worker.broadcast('addLocalPrepArchiveId', {archiveId : archiveIdToInstall });
+            delete Archives.localPrepArchiveIdInProgress[archiveIdToInstall];
+            DAEMON.worker.broadcast('removeLocalPrepArchiveIdInProgress', {archiveId : archiveIdToInstall });
+
+            Archives.localPrepArchiveId[archiveIdToInstall] = new Date();
+            DAEMON.worker.broadcast('addLocalPrepArchiveId', {archiveId : archiveIdToInstall });
+          });
+
+          res.pipe(zlib.createGunzip()).pipe(extract);
         });
-
-        read.pipe(zlib.createGunzip()).pipe(extract);
+        req.end();
       });
       if (socket.connected && jobId) socket.emit('compileLocal', { jobId: jobId });
       DAEMON.worker.emit('compileLocal', { jobId: jobId });
