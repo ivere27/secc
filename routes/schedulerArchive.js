@@ -115,10 +115,27 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     debug(req.body);
     debug(req.file);
 
-    var archive = JSON.parse(req.body.archive);
+    try {
+      var archive = JSON.parse(req.body.archive);
+    } catch(e) {
+      debug("req.body.archive is not a json string. not serializable.")
+      return res.status(400).send('wrong json string');
+    }
+
     debug(archive);
 
     //FIXME : need to check archive data type.
+    if ( typeof archive.archiveId   === 'undefined'
+      || typeof archive.platform    === 'undefined'
+      || typeof archive.arch        === 'undefined'
+      || typeof archive.compiler    === 'undefined'
+      || typeof archive.version     === 'undefined'
+      || typeof archive.dumpversion === 'undefined'
+      || typeof archive.dumpmachine === 'undefined'
+      || typeof archive.targets     === 'undefined'
+      || typeof archive.archiveLog  === 'undefined'
+      || typeof archive.archiveFile === 'undefined')
+     return res.status(400).send('invalid archive data');
 
     if (am.archiveExists(archive.archiveId))
       return res.status(400).send('archive already exists.'); 
