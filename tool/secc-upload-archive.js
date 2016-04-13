@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 'use strict';
 
-var crypto = require('crypto');
 var fs = require("fs");
 var http = require('http');
 var url = require('url');
@@ -76,12 +75,6 @@ function final() {
   archive.archiveLog = results[3];
   archive.archiveFile = archive.archiveLog.split('creating').pop().trim();
 
-  var key = (function(e){
-    //be aware of sequence. with dumpversion! without version.
-    return e.platform + e.arch + e.compiler + e.dumpversion + e.dumpmachine;
-  })(archive);
-  archive.archiveId = crypto.createHash('sha1').update(key).digest('hex');
-  
   console.log('JSON\n', archive);
   console.log('\n');
   console.log('JSON string\n', JSON.stringify(archive));

@@ -2,6 +2,7 @@
 
 var debug = require('debug')('secc:routes:schedulerArchive');
 
+var environment = require('../lib/environment.js');
 var path = require('path');
 
 module.exports = function(express, io, SECC, SCHEDULER) {
@@ -125,8 +126,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     debug(archive);
 
     //FIXME : need to check archive data type.
-    if ( typeof archive.archiveId   === 'undefined'
-      || typeof archive.platform    === 'undefined'
+    if ( typeof archive.platform    === 'undefined'
       || typeof archive.arch        === 'undefined'
       || typeof archive.compiler    === 'undefined'
       || typeof archive.version     === 'undefined'
@@ -136,6 +136,9 @@ module.exports = function(express, io, SECC, SCHEDULER) {
       || typeof archive.archiveLog  === 'undefined'
       || typeof archive.archiveFile === 'undefined')
      return res.status(400).send('invalid archive data');
+
+    //generate archiveId in server side
+    archive.archiveId = environment.generatorArchiveId(archive);
 
     if (am.archiveExists(archive.archiveId))
       return res.status(400).send('archive already exists.'); 
