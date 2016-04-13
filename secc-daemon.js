@@ -81,6 +81,13 @@ if (cluster.isMaster) {
     worker.on('message', function(msg){
       return clusterMessageHandler(worker, msg);
     });
+  });  
+
+  socket.on('schedulerArchives', function(data){
+    //debug(data);
+    Object.keys(cluster.workers).forEach(function(id) {
+      cluster.workers[id].send({event:'setSchedulerArchives',data});
+    });
   });
 }
 
@@ -154,9 +161,6 @@ if (cluster.isWorker) {
     }
   }
 
-  var schedulerUrl = 'http://' + SECC.daemon.scheduler.address + ':' + SECC.daemon.scheduler.port;
-  var socket = require('socket.io-client')(schedulerUrl);
-
   // send data to all workers(except me)
   cluster.worker.broadcast = function(event, data) {
     cluster.worker.send({type:'b', event: event, data: data});
@@ -179,14 +183,11 @@ if (cluster.isWorker) {
       utils.removePumpArchiveInArray(DAEMON.Archives.localPumpArchivesInProgress, msg.data.pumpArchive.pumpArchiveId);
     } else if (msg.event === 'addLocalPumpArchives') {
       DAEMON.Archives.localPumpArchives.push(msg.data.pumpArchive);
+    } else if (msg.event === 'setSchedulerArchives'){
+      DAEMON.Archives.schedulerArchives = data;
     }
   });
-
-  socket.on('schedulerArchives', function(data){
-    //debug(data);
-    DAEMON.Archives.schedulerArchives = data;
-  });
-
+  
   //routers.
   var daemonIndex = require('./routes/daemonIndex')(express, socket, SECC, DAEMON);
   var daemonNative = require('./routes/daemonNative')(express, socket, SECC, DAEMON);

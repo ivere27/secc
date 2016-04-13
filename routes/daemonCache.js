@@ -1,6 +1,6 @@
 'use strict';
 
-var debug = require('debug')('secc:'+process.pid+':routes:daemonCompilePreprocessed');
+var debug = require('debug')('secc:'+process.pid+':routes:daemonCache');
 
 var mkdirp = require('mkdirp');
 var path = require('path');
