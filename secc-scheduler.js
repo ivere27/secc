@@ -1,8 +1,9 @@
 'use strict';
 
-var server = require('./lib/scheduler');
+var SECC = require('./settings.json');
+var server = require('./lib/scheduler')(SECC);
 
-server.listen(server.SECC.scheduler.port, function () {
+server.listen(SECC.scheduler.port, function () {
   var host = server.address().address;
   var port = server.address().port;
 
