@@ -2,7 +2,6 @@
 
 var debug = require('debug')('secc:routes:schedulerOption');
 var utils = require('../lib/utils');
-var path = require('path');
 
 module.exports = function(express, io, SECC, SCHEDULER) {
   var router = express.Router();

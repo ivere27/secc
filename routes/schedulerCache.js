@@ -1,7 +1,6 @@
 'use strict';
 
-var debug = require('debug')('secc:routes:schedulerArchive');
-
+var debug = require('debug')('secc:routes:schedulerCache');
 var path = require('path');
 
 module.exports = function(express, io, SECC, SCHEDULER) {
@@ -11,16 +10,14 @@ module.exports = function(express, io, SECC, SCHEDULER) {
 
   router.get('/', function (req, res) {
     res.json(cm.cacheList());
-  })
+  });
 
   router.delete('/', function (req, res) {
-    process.nextTick(function(){
-      cm.clearCache();
-      io.emit('clearCache', {});      
-    });
+    cm.clearCache();
+    io.emit('clearCache', {});
 
     return res.send('cache cleared.');
-  })
+  });
 
   return router;
 };

@@ -1,7 +1,6 @@
 'use strict';
 
 var debug = require('debug')('secc:routes:schedulerDaemon');
-
 var path = require('path');
 
 module.exports = function(express, io, SECC, SCHEDULER) {
@@ -11,7 +10,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
 
   router.get('/', function (req, res) {
     res.json(dm.getDaemonList());
-  })
+  });
 
   return router;
 };

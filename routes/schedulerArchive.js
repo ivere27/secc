@@ -1,7 +1,6 @@
 'use strict';
 
 var debug = require('debug')('secc:routes:schedulerArchive');
-
 var environment = require('../lib/environment.js');
 var path = require('path');
 
@@ -11,105 +10,89 @@ module.exports = function(express, io, SECC, SCHEDULER) {
   var am = SCHEDULER.am;
 
   router.get('/', function (req, res) {
-    debug(req.body);
     res.json(am.getArchiveList());
-  })
+  });
 
   router.get('/:archiveId', function (req, res) {
-    debug(req.body);
-
     var archiveId = req.params.archiveId;
 
-    if (am.archiveExists(archiveId))
-      return res.json(am.getArchiveInfo(archiveId));
-    else
+    if (!am.archiveExists(archiveId))
       return res.status(400).send('archive not exists.');
-  })
+
+    return res.json(am.getArchiveInfo(archiveId));
+  });
 
   router.get('/:archiveId/target', function (req, res) {
-    debug(req.body);
-
     var archiveId = req.params.archiveId;
 
-    if (am.archiveExists(archiveId))
-      return res.json(am.getArchiveInfo(archiveId).targets);
-    else
+    if (!am.archiveExists(archiveId))
       return res.status(400).send('archive not exists.');
-  })
+
+    return res.json(am.getArchiveInfo(archiveId).targets);
+  });
 
   router.post('/:archiveId/target/:target', function (req, res) {
-    debug(req.body);
-
     var archiveId = req.params.archiveId;
     var target = req.params.target;
 
-    if (am.archiveExists(archiveId)) {
-      am.addTarget(archiveId, target, function(err, archive){
-        if (err) {
-          debug(err);
-          return res.status(400).send('unable to add a target.');
-        }
-
-        res.json(archive.targets);
-      });
-    }
-    else
+    if (!am.archiveExists(archiveId))
       return res.status(400).send('archive not exists.');
+
+    am.addTarget(archiveId, target, function(err, archive){
+      if (err) {
+        debug(err);
+        return res.status(400).send('unable to add a target.');
+      }
+
+      return res.json(archive.targets);
+    });
   });
 
   router.delete('/:archiveId/target/:target', function (req, res) {
-    debug(req.body);
-
     var archiveId = req.params.archiveId;
     var target = req.params.target;
 
-    if (am.archiveExists(archiveId)) {
-      am.removeTarget(archiveId, target, function(err, archive){
-        if (err) {
-          debug(err);
-          return res.status(400).send('unable to remove a target.');
-        }
-
-        res.json(archive.targets);
-      });
-    }
-    else
+    if (!am.archiveExists(archiveId))
       return res.status(400).send('archive not exists.');
+
+    am.removeTarget(archiveId, target, function(err, archive){
+      if (err) {
+        debug(err);
+        return res.status(400).send('unable to remove a target.');
+      }
+
+      return res.json(archive.targets);
+    });
   });
 
   router.get('/:archiveId/file/', function (req, res) {
-    debug(req.body);
-
     var archiveId = req.params.archiveId;
+
+    if (!am.archiveExists(archiveId))
+      return res.status(400).send('archive not exists.');
+
     var archive = am.getArchiveInfo(archiveId);
 
-    if (am.archiveExists(archiveId)) {
-      var archive = am.getArchiveInfo(archiveId);
-
-      res.attachment(archive.archiveFile);
-      res.sendFile(path.join(SECC.archivePath, archive.archiveFile));
-    }
-    else
-      return res.status(400).send('archive not exists.');
-  })
+    res.attachment(archive.archiveFile);
+    res.sendFile(path.join(SECC.archivePath, archive.archiveFile));
+  });
 
   router.delete('/:archiveId', function (req, res) {
-    debug(req.body);
-
     var archiveId = req.params.archiveId;
 
-    if (am.archiveExists(archiveId)) {
-      am.removeArchive(archiveId, function(err){
-        if (err)
-          res.status(400).send(err);  
-
-        io.emit('schedulerArchives', am.getArchiveList());
-        return res.send('archive deleted.');
-      })
-    }
-    else
+    if (!am.archiveExists(archiveId))
       return res.status(400).send('archive not exists.');
-  })
+
+    am.removeArchive(archiveId, function(err){
+      if (err) {
+        debug(err);
+        return res.status(400).send('unable to remove an archive.');
+      }
+
+      io.emit('schedulerArchives', am.getArchiveList());
+      return res.send('archive deleted.');
+    });
+  });
 
 
   router.post('/', function (req, res) {
