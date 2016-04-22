@@ -126,12 +126,12 @@ if (job.compiler.indexOf('clang') !== -1)
 else if ((job.compiler.indexOf('gcc') !== -1) || (job.compiler.indexOf('g++') !== -1))
   job.compiler = 'gcc';
 else
-  passThrough();
+  return passThrough();
 
 //quick check
 if ( (job.argv.indexOf('-c') === -1)
   || (process.cwd().indexOf('CMakeFiles') !== -1)) //always passThrough in CMakeFiles 
-  passThrough();
+  return passThrough();
 
 //debug(job);
 
