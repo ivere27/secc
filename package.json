@@ -1,7 +1,7 @@
 {
   "name": "secc",
   "description": "Distributed compiler with modern web technology",
-  "version": "0.2.36",
+  "version": "0.2.45",
   "author": {
     "name": "HoYong Jung",
     "email": ""
