@@ -31,5 +31,9 @@
   "schedulerRemarks" : "secc-scheduler",
   "scheduler" : {
     "port" : 10509
+  },
+
+  "experimental" : {
+    "allowLocalDaemon" : false
   }
 }
