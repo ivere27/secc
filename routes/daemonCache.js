@@ -28,7 +28,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
     var preprocessedHash = req.params.preprocessedHash;
     var argvHash = req.params.argvHash;
 
-    var redisKey = 'cache/' + archiveId + '/' + preprocessedHash + '/' + argvHash;    
+    var redisKey = utils.getCacheKey(archiveId, preprocessedHash, argvHash);
 
     debug('cache is requested. key : %s', redisKey);
 
