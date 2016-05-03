@@ -20,11 +20,11 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     if (~idx && ~daemonAddress.indexOf('.'))
       daemonAddress = daemonAddress.slice(idx + 1);
 
-    var newDaemon = { daemonId: socket.id, 
-      jobs: 0, maxJobs: 0, type: 'guest', 
+    var newDaemon = { daemonId: socket.id,
+      jobs: 0, maxJobs: 0, type: 'guest',
       daemonAddress : daemonAddress };
     dm.addDaemon(newDaemon);
-    
+
     //send current Archives
     socket.emit('schedulerArchives', am.getArchiveList());
     socket.emit('daemonList', dm.getDaemonList());
@@ -71,7 +71,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
         { loadavg  : metaData.loadavg
         , totalmem : metaData.totalmem
         , freemem  : metaData.freemem});
-    });  
+    });
 
     //JOBs
     socket.on('compileBefore', function(metaData){

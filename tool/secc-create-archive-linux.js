@@ -14,7 +14,7 @@ var environment = require('../lib/environment');
 var argv = process.argv;
 var cwd = process.cwd();
 
-var nodePath = argv.shift(); 
+var nodePath = argv.shift();
 var commandPath = argv.shift();
 var command = path.basename(commandPath);
 
@@ -144,12 +144,12 @@ async.series([
         addList[filePath]['realpath'] = realpath;
         addList[filePath]['type'] = null;
         addList[filePath]['fileStdout'] = stdout;
-        
+
         if (addList[filePath]['fileStdout'].indexOf('ELF') !== -1) {
           addList[filePath]['type'] = 'ELF';
           callChildProcess('ldd ' + realpath, function(err, stdout, stderr){
             if (err) throw cb(err);
-            
+
             addList[filePath]['lddStdout'] = stdout;
             cb(null);
           });
@@ -222,7 +222,7 @@ async.series([
     mkdirp.sync(tempDirectory, '0775');
 
     console.log('mkdir temp directory : %s',tempDirectory);
-    callback(null);  
+    callback(null);
   },
   //copy add files to the temp directory
   function(callback){
@@ -329,13 +329,13 @@ async.series([
         cb(null);
       });
       stream.pipe(hash);
-    }, 
+    },
     function(err){
-      if(err) 
+      if(err)
         return callback(err || new Error('hashing error.'));
 
       callback(null);
-    }); 
+    });
   },
   //tar,
   function(callback) {
@@ -356,7 +356,7 @@ async.series([
     contentsHash = hash.digest("hex");
     console.log('md5sum %s', contentsHash);
 
-    command = 'tar -cvz --numeric-owner -f ' 
+    command = 'tar -cvz --numeric-owner -f '
               + path.join(cwd, contentsHash + '.tar.gz')
               + command;
 

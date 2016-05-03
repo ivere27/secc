@@ -11,7 +11,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
   router.post('/analyze', function (req, res) {
     var json = req.body;
 
-    if (typeof json !== 'object' 
+    if (typeof json !== 'object'
       || !Array.isArray(json.argv)
       || typeof json.compiler === 'undefined'
       || typeof json.cwd === 'undefined'

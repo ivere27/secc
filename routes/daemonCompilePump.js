@@ -27,7 +27,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
     var options = options || {};
 
     var contentEncoding = req.headers['content-encoding'] || '';
-    
+
     options.compiler = req.headers['secc-compiler'] || 'gcc';
 
     if (options.archive) {
@@ -169,7 +169,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
     debug('/%s/%s/ from %s', archiveId, projectId, clientIp);
 
     var pumpArchiveId = crypto.createHash('md5').update(archivePath).digest("hex");
-    var pumpArchive = { 
+    var pumpArchive = {
       pumpArchiveId : pumpArchiveId,
       archive : archive,
       archivePath : archivePath};
@@ -314,7 +314,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
               workingDirectory : workingDirectory
             };
 
-        compileWrapper(req, res, options);        
+        compileWrapper(req, res, options);
       });
     });
 
