@@ -18,7 +18,7 @@ var environment = require('../lib/environment');
 var argv = process.argv;
 var cwd = process.cwd();
 
-var nodePath = argv.shift(); 
+var nodePath = argv.shift();
 var commandPath = argv.shift();
 var command = path.basename(commandPath);
 
@@ -241,13 +241,13 @@ async.series([
         cb(null);
       });
       stream.pipe(hash);
-    }, 
+    },
     function(err){
-      if(err) 
+      if(err)
         return callback(err || new Error('hashing error.'));
 
       callback(null);
-    }); 
+    });
   },
   //tar,
   function(callback) {
@@ -268,7 +268,7 @@ async.series([
     contentsHash = hash.digest("hex");
     console.log('md5sum %s', contentsHash);
 
-    command = 'tar -cvz --numeric-owner -f ' 
+    command = 'tar -cvz --numeric-owner -f '
               + path.join(cwd, contentsHash + '.tar.gz')
               + command;
 

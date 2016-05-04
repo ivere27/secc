@@ -25,7 +25,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
     var options = options || {};
 
     var contentEncoding = req.headers['content-encoding'] || '';
-    
+
     options.compiler = req.headers['secc-compiler'] || 'gcc';
 
     if (options.archive) {
@@ -195,7 +195,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
       });
       if (socket.connected && jobId) socket.emit('compileLocal', { jobId: jobId });
       DAEMON.worker.emit('compileLocal', { jobId: jobId });
-      return res.status(400).send('archiveId is not installed.'); 
+      return res.status(400).send('archiveId is not installed.');
     }
 
     var options = {

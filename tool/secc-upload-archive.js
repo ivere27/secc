@@ -9,7 +9,7 @@ var path = require('path');
 var SECC = require('../package.json');
 
 var argv = process.argv;
-var nodePath = argv.shift(); 
+var nodePath = argv.shift();
 var commandPath = argv.shift();
 var command = path.basename(commandPath);
 
@@ -65,7 +65,7 @@ function final() {
   var os = require('os');
   archive.platform = os.platform();
   archive.arch = os.arch();
-  
+
   archive.compiler = compiler;
 
   archive.version = results[0];

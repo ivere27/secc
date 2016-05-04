@@ -12,11 +12,11 @@ module.exports = function(socket, SECC, DAEMON) {
     debug('socket.io - connected.')
 
     environment.getGccClangCompilerInformation(function(err, results) {
-      if(err) 
+      if(err)
         return console.err(err);
 
       var daemonInformation = environment.getSystemInformation(SECC);
-      
+
       if(results.gcc)
         daemonInformation.gcc = results.gcc;
 

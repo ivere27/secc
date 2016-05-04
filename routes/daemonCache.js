@@ -28,7 +28,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
     var preprocessedHash = req.params.preprocessedHash;
     var argvHash = req.params.argvHash;
 
-    var redisKey = 'cache/' + archiveId + '/' + preprocessedHash + '/' + argvHash;    
+    var redisKey = utils.getCacheKey(archiveId, preprocessedHash, argvHash);
 
     debug('cache is requested. key : %s', redisKey);
 
@@ -46,11 +46,11 @@ module.exports = function(express, socket, SECC, DAEMON) {
         debug('cache not exists.')
         if (socket.connected) socket.emit('cacheNotExists', metaData);
 
-        return res.status(400).send('object cache not exists');        
+        return res.status(400).send('object cache not exists');
       }
 
       //nothing or data error.
-      if (obj === null 
+      if (obj === null
         || (typeof obj['chunkCount'] === 'undefined')
         || (typeof obj['stdout'] === 'undefined')
         || (typeof obj['stderr'] === 'undefined'))

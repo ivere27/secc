@@ -124,7 +124,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     archive.archiveId = environment.generatorArchiveId(archive);
 
     if (am.archiveExists(archive.archiveId))
-      return res.status(400).send('archive already exists.'); 
+      return res.status(400).send('archive already exists.');
 
     am.addArchive(archive, req.file, function(err){
       if(err) {

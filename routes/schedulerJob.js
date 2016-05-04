@@ -79,7 +79,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
 
     if (archiveInfo) {
       debug('suitable archive is.. %s', archiveInfo.archiveId);
-    } 
+    }
     if (job.crossPrefered && (crossArchiveIds.length > 0)) {
       debug('suitable cross archiveIds are..');
       debug(crossArchiveIds);
@@ -101,7 +101,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
           //debug(dm.getDaemonInfo(bestDaemonId));
 
           jm.setDaemonOfJob(job.id, bestDaemonId);
-          io.emit("newJob", {id : job.id, 
+          io.emit("newJob", {id : job.id,
             cache : true,
             cross : false,
             daemonId : bestDaemonId,
@@ -110,10 +110,10 @@ module.exports = function(express, io, SECC, SCHEDULER) {
 
           var data = {
             jobId : job.id,
-            local: false, 
-            cache: true, 
+            local: false,
+            cache: true,
             cross : false,
-            daemon: dm.getDaemonInfo(bestDaemonId), 
+            daemon: dm.getDaemonInfo(bestDaemonId),
             archive: archiveInfo};
 
           if (req.headers['accept'] === 'text/plain')
@@ -132,7 +132,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
 
     //try if there is no same machine.
     //FIXME : refactoring.
-    if ((Object.keys(candidateDaemons).length === 0) 
+    if ((Object.keys(candidateDaemons).length === 0)
       && (job.crossPrefered && (crossArchiveIds.length > 0)))
       candidateDaemons = dm.getCandidateCrossDaemonIds(job, crossArchiveIds);
 
@@ -144,8 +144,8 @@ module.exports = function(express, io, SECC, SCHEDULER) {
         //debug(dm.getDaemonInfo(bestDaemonId));
 
         jm.setDaemonOfJob(job.id, bestDaemonId);
-        io.emit("newJob", {id : job.id, 
-          cache : false, 
+        io.emit("newJob", {id : job.id,
+          cache : false,
           cross : candidateDaemons[bestDaemonId].cross,
           daemonId : bestDaemonId,
           archiveId : (candidateDaemons[bestDaemonId].cross) ? candidateDaemons[bestDaemonId].archiveId : archiveInfo.archiveId,
@@ -153,10 +153,10 @@ module.exports = function(express, io, SECC, SCHEDULER) {
 
           var data = {
                     jobId : job.id,
-                    local: false, 
-                    cache: false, 
+                    local: false,
+                    cache: false,
                     cross : candidateDaemons[bestDaemonId].cross,
-                    daemon: dm.getDaemonInfo(bestDaemonId), 
+                    daemon: dm.getDaemonInfo(bestDaemonId),
                     archive: (candidateDaemons[bestDaemonId].cross)
                               ? am.getArchiveInfo(candidateDaemons[bestDaemonId].archiveId)
                               : archiveInfo

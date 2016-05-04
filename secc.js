@@ -61,7 +61,7 @@ var passThrough = function() {
   }
 };
 
-//FIXME : sync or callback? //async.detect(pathArray, fs.stat, function(result){});  
+//FIXME : sync or callback? //async.detect(pathArray, fs.stat, function(result){});
 var lookupInPath = function(seccPath, command) {
   var pathArray = process.env.PATH.split(':')
                   .map(function(e){return path.join(e, command)})
@@ -130,7 +130,7 @@ else
 
 //quick check
 if ( (job.argv.indexOf('-c') === -1)
-  || (process.cwd().indexOf('CMakeFiles') !== -1)) //always passThrough in CMakeFiles 
+  || (process.cwd().indexOf('CMakeFiles') !== -1)) //always passThrough in CMakeFiles
   return passThrough();
 
 //debug(job);
@@ -144,7 +144,7 @@ require('async').waterfall([
       cwd : process.cwd(),
       mode : job.mode,
       argv : job.argv
-    }; 
+    };
     var options = {
       hostname: process.env.SECC_ADDRESS || settings.client.scheduler.address,
       port: process.env.SECC_PORT || settings.client.scheduler.port,
@@ -160,7 +160,7 @@ require('async').waterfall([
       return callback(new Error('Timeout in request /option/analyze'));
     });
     req.on('response', function (res) {
-      if(res.statusCode !== 200 
+      if(res.statusCode !== 200
         || res.headers['content-type'].indexOf('application/json') === -1) {
         this.abort();
         return callback(new Error('Error raised in /option/analyze request'));
@@ -224,7 +224,7 @@ require('async').waterfall([
       debug('source : %s, object : %s, dependencies total : %d'
         ,compileFile.sourceFile, compileFile.objectFile, compileFile.dependencies.length);
 
-      //FIXME : arrange right outputPath and sourcePath. 
+      //FIXME : arrange right outputPath and sourcePath.
       job.compileFile = compileFile;
       job.outputPath = job.declaredOutputPath || compileFile.objectFile;
       job.sourcePath = job.declaredSourcePath || compileFile.sourceFile;

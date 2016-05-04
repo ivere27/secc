@@ -8,7 +8,7 @@ var url = require('url');
 var SECC = require('../package.json');
 
 var argv = process.argv;
-var nodePath = argv.shift(); 
+var nodePath = argv.shift();
 var filePath = argv.shift();
 var file = path.basename(filePath);
 
@@ -92,7 +92,7 @@ if (command === 'list') {
 } else if ((command === 'removeTarget') && option1 && option2) {
   method = 'DELETE';
   uri += option1 + '/target/' + option2;
-} else 
+} else
   return howto();
 
 send(method, uri);
