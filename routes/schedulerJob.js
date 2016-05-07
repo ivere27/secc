@@ -2,6 +2,7 @@
 
 var debug = require('debug')('secc:routes:schedulerJob');
 var utils = require('../lib/utils');
+var path = require('path');
 
 module.exports = function(express, io, SECC, SCHEDULER) {
   var router = express.Router();
@@ -70,7 +71,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     var archiveInfo = am.getArchiveInfo(am.getArchiveId(information));
     var crossArchiveIds = am.getArchiveIdsByTarget(information.dumpmachine);
 
-    if ((archiveInfo === null) || (job.crossPrefered && (crossArchiveIds.length === 0))) {
+    if ((archiveInfo === null) && (job.crossPrefered && (crossArchiveIds.length === 0))) {
       console.log('archive not exists. build local.')
       debug(information);
       jm.removeJob(job.id);
