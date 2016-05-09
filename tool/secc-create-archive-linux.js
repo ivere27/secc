@@ -93,6 +93,9 @@ async.series([
   },
   //add liblto_plugin.so
   function(callback){
+    if (compilerName === 'clang')
+      return callback(null);
+
     callChildProcess(compilerPath + ' -print-file-name=liblto_plugin.so', function(err, stdout, stderr){
       if (err) return callback(err);
       var liblto_plugin = stdout.trim();
