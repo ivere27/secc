@@ -108,10 +108,11 @@ async.series([
     if (compilerName === 'gcc')
       return callback(null);
 
-    environment.getClangCompilerSimpleVersion(compilerPath, function(err, version){
+    environment.getClangCompilerVersionByMacro(compilerPath, function(err, versionString, versionObject){
       if (err) return callback(err);
 
       //http://clang.llvm.org/docs/LibTooling.html#libtooling-builtin-includes
+      var version = versionObject.major + '.' + versionObject.minor;
       var includePath = path.join(path.dirname(compilerPath), '..', 'lib', 'clang', version, 'include');
       addList[includePath] = {target : includePath, symbolic : true, copySymbolic : true};
       callback(null);
