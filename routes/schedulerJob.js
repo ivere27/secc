@@ -24,6 +24,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
       || !json.systemInformation.platform
       || !json.systemInformation.arch
       || !json.compilerInformation
+      || !json.compilerInformation.version
       || !json.compilerInformation.dumpversion
       || !json.compilerInformation.dumpmachine
       || !json.mode
@@ -53,6 +54,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     var information = { platform: job.systemInformation.platform
                        ,arch : job.systemInformation.arch
                        ,compiler : 'unknown'
+                       ,version : job.compilerInformation.version
                        ,dumpversion : job.compilerInformation.dumpversion
                        ,dumpmachine : job.compilerInformation.dumpmachine};
 
