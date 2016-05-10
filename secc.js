@@ -84,7 +84,9 @@ job.nodePath = job.argv.shift();
 job.commandPath = job.argv.shift();
 job.command = path.basename(job.commandPath);
 job.originalArgv = job.argv.slice();
-job.mode = (process.env.SECC_MODE == 2) ? '2' : '1';
+job.mode = process.env.SECC_MODE
+         ? ((process.env.SECC_MODE == 2) ? '2' : '1')
+         : settings.client.mode;
 job.declaredSourcePath = null;
 job.declaredOutputPath = null;
 job.projectId = null;
@@ -198,7 +200,6 @@ require('async').waterfall([
     environment.getCompilerInformation(job.compilerPath, function(err, compilerInformation) {
       if (err) return callback(err);
 
-      delete compilerInformation.stats;
       job.compilerInformation = compilerInformation;
       debug('compiler information - %s... %s %s'
         , compilerInformation.version.substr(0,30)

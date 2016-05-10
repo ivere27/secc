@@ -1,11 +1,26 @@
 'use strict';
-var cluster = require('cluster');
-var os = require('os');
+
 var debug = require('debug')('secc:'+process.pid+':daemon');
+
+var cluster = require('cluster');
+var crypto = require('crypto');
+var os = require('os');
+var path = require('path');
+
+var SECC = require('./settings.json');
+
+if (!SECC.runPath || SECC.runPath === '')
+  SECC.runPath = path.join(os.tmpdir(), 'secc', 'run');
+if (!SECC.uploadPath || SECC.uploadPath === '')
+  SECC.uploadPath = path.join(os.tmpdir(), 'secc', 'upload');
+if (!SECC.toolPath || SECC.toolPath === '')
+    SECC.toolPath = path.join(__dirname, 'tool');
+
+require('mkdirp').sync(SECC.runPath);
+require('mkdirp').sync(SECC.uploadPath);
 
 if (cluster.isMaster) {
   debug = require('debug')('secc:'+process.pid+':daemon:master');
-  var SECC = require('./settings.json');
 
   var redisClient = null;
   if (SECC.daemon.cache) { //cache enabled.
@@ -86,16 +101,13 @@ if (cluster.isMaster) {
 
 if (cluster.isWorker) {
   debug = require('debug')('secc:'+process.pid+':daemon:' + cluster.worker.id);
-  var SECC = require('./settings.json');
-  var crypto = require('crypto');
-  var path = require('path');
 
   var express = require('express');
   var app = express();
   var bodyParser = require('body-parser');
   var compression = require('compression')
   var multer  = require('multer')
-  var upload = multer({dest:'./uploads/'}).single('source');
+  var upload = multer({dest:SECC.uploadPath}).single('source');
 
   var redisClient = null;
   if (SECC.daemon.cache) { //cache enabled.
@@ -128,15 +140,6 @@ if (cluster.isWorker) {
     console.log('Caught exception: ');
     console.log(err.stack);
   });
-
-  //SECC.
-  if (typeof SECC.runPath === 'undefined')
-    SECC.runPath = path.join(__dirname, 'run');
-  if (typeof SECC.uploadsPath === 'undefined')
-    SECC.uploadsPath = path.join(__dirname, 'uploads');
-  if (typeof SECC.toolPath === 'undefined')
-    SECC.toolPath = path.join(__dirname, 'tool');
-
 
   //runtime global val.
   var DAEMON = {

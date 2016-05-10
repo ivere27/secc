@@ -1,6 +1,9 @@
 {
-  "clientRemark" : "secc",
+  "_clientComment" : ["secc-client"
+                    , " - must set scheduler or export SECC_ADDRESS/SECC_PORT env"
+                    , " - set cross = true if cross-compiling"],
   "client" : {
+    "mode" : "1",
     "cache" : true,
     "cross" : false,
     "scheduler" : {
@@ -10,7 +13,9 @@
   },
 
 
-  "daemonRemarks" : "secc-daemon",
+  "_daemonComment" : ["secc-daemon"
+                    , " - must set scheduler"
+                    , " - set cache = true if redis-server running"],
   "daemon" : {
     "maxCpuUsage" : 100,
     "port" : 10508,
@@ -28,11 +33,20 @@
   },
 
 
-  "schedulerRemarks" : "secc-scheduler",
+  "_schedulerComment" : ["secc-scheduler"],
   "scheduler" : {
     "port" : 10509
   },
 
+
+  "_pathComment": ["leave empty string if you don't know what you're doing."],
+  "archivePath" : "",
+  "uploadPath"  : "",
+  "runPath"     : "",
+  "toolPath"    : "",
+
+
+  "_experimentalComment" : "",
   "experimental" : {
     "allowLocalDaemon" : false
   }

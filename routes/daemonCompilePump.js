@@ -319,7 +319,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
     });
 
     var fs = require("fs");
-    var gzipPack = fs.createReadStream(path.join(SECC.uploadsPath, source.filename))
+    var gzipPack = fs.createReadStream(path.join(SECC.uploadPath, source.filename))
     gzipPack.on('error', function(err){
       return deleteAllUploadFiles(req.file, function(err){
         if (err)

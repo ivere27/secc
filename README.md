@@ -30,39 +30,31 @@ make sure you've already installed node.js, npm and (optionally) redis
 ### Client
 
 set PATH and NUMBER_OF_PROCESSORS(-jX)
-
+> edit "client" part in 'settings.json' file.
+> set scheduler's address and port.
 ```sh
-export PATH=/path/to/secc/bin:$PATH
-export NUMBER_OF_PROCESSORS="8"
+$ export PATH=/path/to/secc/bin:$PATH
+$ export NUMBER_OF_PROCESSORS="8"
+$ # then,
+$ clang -c test.c
+```
 ```
 
-set SECC_MODE = 1 or 2 (see below, Mode section)
-
+or just use CC, CXX and NUMBER_OF_PROCESSORS env
 ```sh
-export SECC_MODE=1
+$ SECC_ADDRESS=172.17.42.1 SECC_CACHE=1 SECC_CROSS=0 \
+CC=/path/to/secc/bin/clang CXX=/path/to/secc/bin/clang++ ./configure
+$ SECC_ADDRESS=172.17.42.1 SECC_CACHE=1 SECC_CROSS=0 \
+CC=/path/to/secc/bin/clang CXX=/path/to/secc/bin/clang++ make -j8
 ```
-
-set SECC_CACHE if you want to use remote daemon's cache.
-
-```sh
-export SECC_CACHE=1
-```
-
-edit "client" part in 'settings.json' file.
-set scheduler's address and port.
 
 upload your compiler archive by ./tool/secc-upload-archive.js
 
-gcc
-
 ```sh
-node secc-upload-archive.js --gcc /path/to/gcc /path/to/g++ archivetool.js http://SCHEDULER:PORT
-```
-
-clang
-
-```sh
-node secc-upload-archive.js --clang /path/to/clang /path/to/clang++ archivetool.js http://SCHEDULER:PORT
+$ # for clang
+$ node secc-upload-archive.js --clang /path/to/clang /path/to/clang++ archivetool.js http://SCHEDULER:PORT
+$ # for gcc
+$ node secc-upload-archive.js --gcc /path/to/gcc /path/to/g++ archivetool.js http://SCHEDULER:PORT
 ```
 
 in linux case(you can use the specific compiler version),
@@ -71,11 +63,6 @@ in linux case(you can use the specific compiler version),
 
      node secc-upload-archive.js --clang /usr/bin/clang /usr/bin/clang++ ./secc-create-archive-linux.js http://172.17.42.1:10509
 
-then, just use gcc as normal.
-
-```sh
-gcc -c test.c
-```
 
 #### Alternatives
 * (experimental) [secc-shell](http://github.com/ivere27/secc-shell) - bash shell frontend
@@ -87,11 +74,6 @@ edit "daemon" part in 'settings.json' file.
 set scheduler's address and port.
 
 if you want to use cache, go #Caches section.
-
-```sh
-chmod a+w run
-chmod a+w uploads
-```
 
 run 'node secc-daemon.js' as root for chroot-jail.
 

@@ -101,8 +101,12 @@
 # Hacks
 > Linux tmpfs
 ```bash
-$ sudo rm -rf /path/to/secc/run/*
-$ sudo rm -rf /path/to/secc/uploads/*
-$ sudo mount tmpfs /path/to/secc/run -t tmpfs
-$ sudo mount tmpfs /path/to/secc/uploads -t tmpfs -o noexec
+$ mkdir /path/to/run/
+$ mkdir /path/to/upload/
+$ #sudo rm -rf /path/to/run/*
+$ #sudo rm -rf /path/to/upload/*
+$ sudo mount tmpfs /path/to/run -t tmpfs
+$ sudo mount tmpfs /path/to/upload -t tmpfs -o noexec
 ```
+> set "runPath", "uploadPath" in settings.json
+> then, restart secc-daemon
