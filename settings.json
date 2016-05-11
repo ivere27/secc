@@ -17,8 +17,6 @@
                     , " - must set scheduler"
                     , " - set cache = true if redis-server running"],
   "daemon" : {
-    "maxCpuUsage" : 100,
-    "port" : 10508,
     "scheduler" : {
       "address" : "127.0.0.1",
       "port" : 10509
@@ -29,6 +27,12 @@
       "port" : 6379,
       "maxmemory" : "256MB",
       "maxmemory-policy" : "allkeys-lru"
+    },
+    "maxCpuUsage" : 100,
+    "port" : 10508,
+    "expose" : {
+      "address" : "",
+      "port" : ""
     }
   },
 

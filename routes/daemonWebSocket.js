@@ -15,7 +15,7 @@ module.exports = function(socket, SECC, DAEMON) {
       if(err)
         return console.err(err);
 
-      var daemonInformation = environment.getSystemInformation(SECC);
+      var daemonInformation = environment.getSystemInformation();
 
       if(results.gcc)
         daemonInformation.gcc = results.gcc;
@@ -25,6 +25,11 @@ module.exports = function(socket, SECC, DAEMON) {
 
       daemonInformation.cpus = os.cpus();
       daemonInformation.networkInterfaces = os.networkInterfaces();
+      daemonInformation.address = SECC.daemon.address;
+      daemonInformation.expose = {
+        address : SECC.daemon.expose.address,
+        port : SECC.daemon.expose.port
+      };
       daemonInformation.maxCpuUsage = SECC.daemon.maxCpuUsage || 100;
 
       socket.emit('daemonInformation', daemonInformation);

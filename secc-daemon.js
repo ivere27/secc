@@ -2,12 +2,29 @@
 
 var debug = require('debug')('secc:'+process.pid+':daemon');
 
+var utils = require('./lib/utils.js');
+
 var cluster = require('cluster');
 var crypto = require('crypto');
 var os = require('os');
 var path = require('path');
 
 var SECC = require('./settings.json');
+
+//override settings
+SECC.daemon.cache = process.env.SECC_CACHE
+                  ? ((process.env.SECC_CACHE == 1) ? true : false)
+                  : SECC.daemon.cache;
+SECC.daemon.port = process.env.SECC_DAEMON_PORT || SECC.daemon.port;
+SECC.daemon.expose.address = process.env.SECC_EXPOSE_ADDRESS || SECC.daemon.expose.address;
+SECC.daemon.expose.port = process.env.SECC_EXPOSE_PORT
+                        || (utils.isLegalPort(SECC.daemon.expose.port)
+                          ? SECC.daemon.expose.port
+                          : SECC.daemon.port);
+SECC.daemon.scheduler.address = process.env.SECC_ADDRESS || SECC.daemon.scheduler.address;
+SECC.daemon.scheduler.port = process.env.SECC_PORT || SECC.daemon.scheduler.port;
+SECC.daemon.redis.address = process.env.REDIS_ADDRESS || SECC.daemon.redis.address;
+SECC.daemon.redis.port = process.env.REDIS_PORT || SECC.daemon.redis.port;
 
 if (!SECC.runPath || SECC.runPath === '')
   SECC.runPath = path.join(os.tmpdir(), 'secc', 'run');
@@ -48,12 +65,12 @@ if (cluster.isMaster) {
     redisClient.send_command("config", ['set','maxmemory', maxmemory], function(err,replay){
       if (err)
         return debug(err);
-      debug("maxmemory : %d MB(%s bytes) - redisClient : %s", parseInt(maxmemory/(1024*1024)), maxmemory, replay.toString());
+      console.log("maxmemory : %d MB(%s bytes) - redisClient : %s", parseInt(maxmemory/(1024*1024)), maxmemory, replay.toString());
     });
     redisClient.send_command("config", ['set','maxmemory-policy', maxmemoryPolicy], function(err,replay){
       if (err)
         return debug(err);
-      debug("maxmemory-policy : %s - redisClient : %s", maxmemoryPolicy, replay.toString());
+      console.log("maxmemory-policy : %s - redisClient : %s", maxmemoryPolicy, replay.toString());
     });
   }
 

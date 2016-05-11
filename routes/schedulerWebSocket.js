@@ -22,7 +22,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
 
     var newDaemon = { daemonId: socket.id,
       jobs: 0, maxJobs: 0, type: 'guest',
-      daemonAddress : daemonAddress };
+      daemonAddress : daemonAddress, daemonPort : 0 };
     dm.addDaemon(newDaemon);
 
     //send current Archives
@@ -59,7 +59,10 @@ module.exports = function(express, io, SECC, SCHEDULER) {
           , numCPUs : metaData.numCPUs
           , maxCpuUsage : metaData.maxCpuUsage
           , cpus    : metaData.cpus
-          , networkInterfaces : metaData.networkInterfaces});
+          , networkInterfaces : metaData.networkInterfaces
+          , address : metaData.expose.address
+          , port : metaData.expose.port
+        });
       io.emit('daemonList', dm.getDaemonList());
 
       debug('daemonList');

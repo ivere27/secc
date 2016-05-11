@@ -15,7 +15,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
       if(err)
         return res.status(400).send();
 
-      var systemInformation = environment.getSystemInformation(SECC);
+      var systemInformation = environment.getSystemInformation();
 
       if(results.gcc)
         systemInformation.gcc = results.gcc;
