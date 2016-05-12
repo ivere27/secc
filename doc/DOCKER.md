@@ -18,3 +18,6 @@ $ sudo docker run -p 10508:10508 --name secc_daemon \
 ```
 if scheduler and daemon are in the same host, use <br>
 --link secc_scheduler:secc_scheduler --env SECC_ADDRESS=secc_scheduler
+
+---
+Dockfile - https://github.com/ivere27/secc-docker

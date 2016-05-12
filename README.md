@@ -12,6 +12,9 @@ a project of 'Second Compiler'.
 - Cross-compile(Various version/machine of compiler in network) supports
 - Gcc / Clang support
 
+## Quick Start
+  - [use DOCKER to start a scheduler and daemons](https://github.com/ivere27/secc/blob/master/doc/DOCKER.md)
+
 ## How to use
 
 install by git clone (then npm install)
@@ -27,7 +30,7 @@ make sure you've already installed node.js, npm and (optionally) redis
 * Mac $ brew install nodejs redis
 
 
-### Client
+### Client - your PC
 
 set PATH and NUMBER_OF_PROCESSORS(-jX)
 > edit "client" part in 'settings.json' file.
@@ -68,7 +71,7 @@ in linux case(you can use the specific compiler version),
 * (experimental) [secc-shell](http://github.com/ivere27/secc-shell) - bash shell frontend
 * (experimental) [secc-native](http://github.com/ivere27/secc-native) - native(c++) frontend
 
-### Daemon
+### Daemon - n PC
 
 edit "daemon" part in 'settings.json' file.
 set scheduler's address and port.
@@ -78,13 +81,13 @@ if you want to use cache, go #Caches section.
 run 'node secc-daemon.js' as root for chroot-jail.
 
 ```sh
-sudo DEBUG=secc* node secc-daemon.js
+$ sudo DEBUG=secc* node secc-daemon.js
 ```
 
-### Scheduler
+### Scheduler - 1 PC
 
 ```sh
-sudo DEBUG=secc* node secc-scheduler.js
+$ DEBUG=secc* node secc-scheduler.js
 ```
 
 ## Modes
@@ -99,11 +102,12 @@ MODE 3 - Git Mode(not yet supported.)
 
 ## Debug
 
-use DEBUG=* to watch every verbose logs.
-use DEBUG=secc* to watch only SECC's log.
+- DEBUG=* to watch every verbose logs.
+- DEBUG=secc* to watch only SECC's log.
+- SECC_LOG=/path/to/log.txt - redirect logs to a file
 
 ```sh
-DEBUG=* SECC_MODE=1 SECC_CACHE=1 /path/to/secc/bin/gcc -c test.c
+$ DEBUG=* SECC_MODE=1 SECC_CACHE=1 /path/to/secc/bin/gcc -c test.c
 ```
 
 ## Caches
