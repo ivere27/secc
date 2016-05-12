@@ -22,7 +22,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
   var compileWrapper = function(req, res, options) {
     var jobId = req.headers['secc-jobid'] || null;
     if (socket.connected && jobId) socket.emit('compileBefore', { jobId: jobId });
-    DAEMON.worker.emit('compileBefore', { jobId: jobId });
+    DAEMON.worker.emitToScheduler('compileBefore', { jobId: jobId });
 
     var options = options || {};
 
@@ -72,7 +72,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
     var compilePumpStream = new compile.CompileStream(options);
 
     compilePumpStream.on('cacheStored', function(data){
-      DAEMON.worker.emit('cacheStored', data);
+      DAEMON.worker.emitToScheduler('cacheStored', data);
     });
 
     compilePumpStream.on('finish', function(err, stdout, stderr, code, outArchive) {
@@ -87,7 +87,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
         debug(err);
 
         if (socket.connected && jobId) socket.emit('compileAfter', { jobId: jobId, error: err.message });
-        DAEMON.worker.emit('compileAfter', { jobId: jobId , error: err.message });
+        DAEMON.worker.emitToScheduler('compileAfter', { jobId: jobId , error: err.message });
 
         return res.status(400).send(err.message);
       }
@@ -97,7 +97,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
       compilePumpStream.pipe(res);
 
       if (socket.connected && jobId) socket.emit('compileAfter', { jobId: jobId });
-      DAEMON.worker.emit('compileAfter', { jobId: jobId });
+      DAEMON.worker.emitToScheduler('compileAfter', { jobId: jobId });
     });
   }
 
@@ -146,7 +146,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
       if (err) {
         debug(err.message);
         if (socket.connected && jobId) socket.emit('compileLocal', { jobId: jobId });
-        DAEMON.worker.emit('compileLocal', { jobId: jobId });
+        DAEMON.worker.emitToScheduler('compileLocal', { jobId: jobId });
         return res.status(400).send('error!!')
       }
 
@@ -177,7 +177,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
     var deleteAllUploadFiles = function(file, callback){
       var fs = require("fs");
       if (socket.connected && jobId) socket.emit('compileLocal', { jobId: jobId });
-      DAEMON.worker.emit('compileLocal', { jobId: jobId });
+      DAEMON.worker.emitToScheduler('compileLocal', { jobId: jobId });
 
       fs.unlink(file.path, function(err){
         if(err && err.code !== 'ENOENT')

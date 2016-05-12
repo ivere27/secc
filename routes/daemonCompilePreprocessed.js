@@ -20,7 +20,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
   var compileWrapper = function(req, res, options) {
     var jobId = req.headers['secc-jobid'] || null;
     if (socket.connected && jobId) socket.emit('compileBefore', { jobId: jobId });
-    DAEMON.worker.emit('compileBefore', { jobId: jobId });
+    DAEMON.worker.emitToScheduler('compileBefore', { jobId: jobId });
 
     var options = options || {};
 
@@ -70,7 +70,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
     var compilePipeStream = new compile.CompileStream(options);
 
     compilePipeStream.on('cacheStored', function(data){
-      DAEMON.worker.emit('cacheStored', data);
+      DAEMON.worker.emitToScheduler('cacheStored', data);
     });
 
     compilePipeStream.on('finish', function(err, stdout, stderr, code, outArchive) {
@@ -84,7 +84,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
         debug(err);
 
         if (socket.connected && jobId) socket.emit('compileAfter', { jobId: jobId , error: err.message });
-        DAEMON.worker.emit('compileAfter', { jobId: jobId , error: err.message });
+        DAEMON.worker.emitToScheduler('compileAfter', { jobId: jobId , error: err.message });
 
         return res.status(400).send(err.message);
       }
@@ -94,7 +94,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
       output.pipe(res);
 
       if (socket.connected && jobId) socket.emit('compileAfter', { jobId: jobId });
-      DAEMON.worker.emit('compileAfter', { jobId: jobId });
+      DAEMON.worker.emitToScheduler('compileAfter', { jobId: jobId });
     });
 
     if (contentEncoding === 'gzip') {
@@ -115,14 +115,13 @@ module.exports = function(express, socket, SECC, DAEMON) {
     var archiveId = req.params.archiveId;
 
     var archive = utils.getArchiveInArray(Archives.schedulerArchives, archiveId);
-    var archivePath = path.join(SECC.runPath, 'preprocessed', archiveId);
 
     //check exists in Archives.schedulerArchives
     if (!utils.archiveExistsInArray(Archives.schedulerArchives, archiveId)) {
       debug('unknown archiveId. not exists in Archives.schedulerArchives.');
 
       if (socket.connected && jobId) socket.emit('compileLocal', { jobId: jobId });
-      DAEMON.worker.emit('compileLocal', { jobId: jobId });
+      DAEMON.worker.emitToScheduler('compileLocal', { jobId: jobId });
       return res.status(400).send('unknown archiveId.');
     }
 
@@ -130,7 +129,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
     if (Archives.localPrepArchiveIdInProgress.hasOwnProperty(archiveId)) {
       debug('archiveId %s is working in progress.', archiveId);
       if (socket.connected && jobId) socket.emit('compileLocal', { jobId: jobId });
-      DAEMON.worker.emit('compileLocal', { jobId: jobId });
+      DAEMON.worker.emitToScheduler('compileLocal', { jobId: jobId });
       return res.status(400).send('archiveId is working in progress.');
     }
 
@@ -140,61 +139,11 @@ module.exports = function(express, socket, SECC, DAEMON) {
       Archives.localPrepArchiveIdInProgress[archiveId] = new Date();
       DAEMON.worker.broadcast('addLocalPrepArchiveIdInProgress', {archiveId : archiveId });
 
-      process.nextTick(function(){
-        //download from scheduler. FIXME : make as a function. and loop.
-        var fs = require('fs');
-        var archiveIdToInstall = Object.keys(Archives.localPrepArchiveIdInProgress)[0];
+      //request 'Install Archive' to the master
+      DAEMON.worker.emitToMaster('requestInstallArchive', {archiveId : archiveId });
 
-        var http = require('http');
-        var options = {
-          hostname: SECC.daemon.scheduler.address,
-          port: SECC.daemon.scheduler.port,
-          path: '/archive/' + archiveIdToInstall + '/file/',
-          method: 'GET'
-        };
-
-        debug("download %s", options.path);
-
-        var req = http.request(options);
-        req.on('error', function(err) {return debug(err);})
-        req.setTimeout(60000, function(){
-            //FIXME : report to the scheduler.
-            return debug(new Error('Timeout in downloading the archive file'));
-        });
-        req.on('response', function(res) {
-          if(res.statusCode !== 200) {
-            this.abort();
-            //FIXME : report to the scheduler.
-            return debug(new Error('Timeout in downloading the archive file'));
-          }
-
-          var extract = require('tar').Extract({path: archivePath});
-          extract.on('error', function(err) {
-            debug(err);
-            delete Archives.localPrepArchiveIdInProgress[archiveIdToInstall];
-            DAEMON.worker.broadcast('removeLocalPrepArchiveIdInProgress', {archiveId : archiveIdToInstall });
-          });
-          extract.on('end',function(){
-            debug('download and extract done : %s', archivePath);
-            mkdirp.sync(path.join(archivePath, 'tmp'));
-
-            debug('copy chdir.sh to archivePath');
-            fs.createReadStream(path.join(SECC.toolPath,'chdir.sh'))
-              .pipe(fs.createWriteStream(path.join(archivePath,'chdir.sh')));
-
-            delete Archives.localPrepArchiveIdInProgress[archiveIdToInstall];
-            DAEMON.worker.broadcast('removeLocalPrepArchiveIdInProgress', {archiveId : archiveIdToInstall });
-
-            Archives.localPrepArchiveId[archiveIdToInstall] = new Date();
-            DAEMON.worker.broadcast('addLocalPrepArchiveId', {archiveId : archiveIdToInstall });
-          });
-
-          res.pipe(zlib.createGunzip()).pipe(extract);
-        });
-        req.end();
-      });
       if (socket.connected && jobId) socket.emit('compileLocal', { jobId: jobId });
-      DAEMON.worker.emit('compileLocal', { jobId: jobId });
+      DAEMON.worker.emitToScheduler('compileLocal', { jobId: jobId });
       return res.status(400).send('archiveId is not installed.');
     }
 

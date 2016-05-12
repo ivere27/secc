@@ -79,22 +79,35 @@ if (cluster.isMaster) {
     redisClient : redisClient,
     loadReportTimer : null
   }
+  DAEMON.broadcast = function(event, data) {
+   Object.keys(cluster.workers).forEach(function(id) {
+      cluster.workers[id].send({event: event, data: data});
+    });
+  }
 
   //WebSocket.
   var schedulerUrl = 'http://' + SECC.daemon.scheduler.address + ':' + SECC.daemon.scheduler.port;
   var socket = require('socket.io-client')(schedulerUrl);
 
   var daemonWebSocket = require('./routes/daemonWebSocket')(socket, SECC, DAEMON);
+  var am = require('./lib/daemonArchiveManager.js')(socket, SECC, DAEMON)
 
   var clusterMessageHandler = function(worker, msg) {
-    if (msg.type && msg.type === 'b') { // boradcast.
+    if (msg.type && msg.type === 'b') { // boradcast to workers.
      Object.keys(cluster.workers).forEach(function(id) {
         if (cluster.workers[id] === worker) return;
 
         cluster.workers[id].send({event: msg.event, data: msg.data});
       });
-    } else if (msg.type && msg.type === 'm') { // emit
+    } else if (msg.type && msg.type === 's') { // emit to scheduler
       socket.emit(msg.event, msg.data);
+    } else if (msg.type && msg.type === 'm') { // emit to master
+      if (msg.event === 'requestInstallArchive') {
+        am.installArchive(msg.data.archiveId)
+      }
+    } else {
+      debug('unknown message type.');
+      debug(msg);
     }
   };
 
@@ -182,9 +195,14 @@ if (cluster.isWorker) {
     cluster.worker.send({type:'b', event: event, data: data});
   }
   // send data to master
-  cluster.worker.emit = function(event, data) {
+  cluster.worker.emitToMaster = function(event, data) {
     cluster.worker.send({type:'m', event: event, data: data});
   }
+  // send data to scheduler(through the master )
+  cluster.worker.emitToScheduler = function(event, data) {
+    cluster.worker.send({type:'s', event: event, data: data});
+  }
+
   cluster.worker.on('message', function(msg) {
     debug(msg);
     if (msg.event === 'addLocalPrepArchiveIdInProgress') {
