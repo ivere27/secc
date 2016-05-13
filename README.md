@@ -119,13 +119,16 @@ enable "cache" in "daemon" part of 'settings.json' file.
 
 | ENV                 | secc-client            | secc-daemon        | secc-scheduler |
 | :-------------      | :---------------:      | :----------------: | :------------: |
-| SECC_ADDRESS        | scheduler address      | -                  | -              |
-| SECC_PORT           | scheduler port         | -                  | listening port |
+| SECC_ADDRESS        | scheduler address      | scheduler address  | -              |
+| SECC_PORT           | scheduler port         | scheduler port     | listening port |
 | DEBUG               | log level              | log level          | log level      |
 | SECC_LOG            | log file path          | log file path      | log file path  |
+| SECC_CMDLINE        | log command line       | -                  | -              |
 | SECC_MODE           | processed or pump      | -                  | -              |
 | SECC_CACHE          | cache prefer           | cache enable       | -              |
 | SECC_CROSS          | cross-compiling prefer | -                  | -              |
+| SECC_CC             | c compiler path        | -                  | -              |
+| SECC_CXX            | c++ compiler path      | -                  | -              |
 | REDIS_ADDRESS       | -                      | redis address      | -              |
 | REDIS_PORT          | -                      | redis port         | -              |
 | SECC_EXPOSE_ADDRESS | -                      | address for client | -              |
