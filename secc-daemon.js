@@ -100,6 +100,7 @@ if (cluster.isMaster) {
         cluster.workers[id].send({event: msg.event, data: msg.data});
       });
     } else if (msg.type && msg.type === 's') { // emit to scheduler
+      msg.data.workerId = worker.id;
       socket.emit(msg.event, msg.data);
     } else if (msg.type && msg.type === 'm') { // emit to master
       if (msg.event === 'requestInstallArchive') {
