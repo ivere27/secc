@@ -71,7 +71,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
 
       debug('hit the cache.');
       debug(metaData);
-      res.attachment('cache.tar'); //FIXME : better naming?
+      res.attachment('cache.tar.gz'); //FIXME : better naming?
       res.writeHead(200);
 
       var readable = new stream.Readable();

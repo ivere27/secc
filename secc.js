@@ -87,8 +87,8 @@ job.originalArgv = job.argv.slice();
 job.mode = process.env.SECC_MODE
          ? ((process.env.SECC_MODE == 2) ? '2' : '1')
          : settings.client.mode;
-job.declaredSourcePath = null;
-job.declaredOutputPath = null;
+job.infile = null;
+job.outfile = null;
 job.projectId = null;
 job.cachePrefered = process.env.SECC_CACHE
                   ? ((process.env.SECC_CACHE == 1) ? true : false)
@@ -177,8 +177,8 @@ require('async').waterfall([
 
         job.projectId = json.projectId;
         job.language = json.language;
-        job.declaredSourcePath = json.infile;
-        job.declaredOutputPath = json.outfile;
+        job.infile = json.infile;
+        job.outfile = json.outfile;
         job.preprocessedInfile = json.preprocessedInfile;
         job.multipleOutfiles = json.multipleOutfiles;
         job.argvHash = json.argvHash;
@@ -227,8 +227,8 @@ require('async').waterfall([
 
       //FIXME : arrange right outputPath and sourcePath.
       job.compileFile = compileFile;
-      job.outputPath = job.declaredOutputPath || compileFile.objectFile;
-      job.sourcePath = job.declaredSourcePath || compileFile.sourceFile;
+      job.outputPath = job.outfile || compileFile.objectFile;
+      job.sourcePath = job.infile || compileFile.sourceFile;
       debug('arranged sourcePath %s , outputPath %s', job.sourcePath, job.outputPath);
 
       callback(null);
