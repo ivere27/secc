@@ -112,10 +112,21 @@ async.series([
       if (err) return callback(err);
 
       //http://clang.llvm.org/docs/LibTooling.html#libtooling-builtin-includes
-      var version = versionObject.major + '.' + versionObject.minor;
-      var includePath = path.join(path.dirname(compilerPath), '..', 'lib', 'clang', version, 'include');
-      addList[includePath] = {target : includePath, symbolic : true, copySymbolic : true};
-      callback(null);
+      var version1 = versionObject.major + '.' + versionObject.minor;
+      var includePath1 = path.join(path.dirname(compilerPath), '..', 'lib', 'clang', version1, 'include');
+      addList[includePath1] = {target : includePath1, symbolic : true, copySymbolic : true};
+
+      // since ubuntu:14.04 and clang-3.5,
+      // '/usr/bin/../lib/clang/major.minor.patch/' path should be included
+      var version2 = versionObject.major + '.' + versionObject.minor + '.' + versionObject.patch;
+      var includePath2 = path.join(path.dirname(compilerPath), '..', 'lib', 'clang', version2, 'include');
+
+      fs.lstat(includePath2, function(err, stats) {
+        if (!err && stats.isSymbolicLink())
+          addList[includePath2] = {target : includePath2, symbolic : true, copySymbolic : true};
+
+        callback(null);
+      });
     });
   },
   //when clang and clang++ are same(mostly), just make a symbolic link.
