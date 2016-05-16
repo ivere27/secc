@@ -40,11 +40,18 @@ module.exports = function(socket, SECC, DAEMON) {
                                   , freemem : os.freemem()})
       },5000);
     });
+
+    DAEMON.broadcast('daemonIdChanged', {daemonId : socket.id});
   });
 
   socket.on('event', function(data){
     debug(data) ;
   });
+
+  socket.on('schedulerArchives', function(data){
+    DAEMON.broadcast('schedulerArchives', data);
+  });
+
 
   socket.on('clearCache', function(data){
     //debug(data);
@@ -54,11 +61,14 @@ module.exports = function(socket, SECC, DAEMON) {
       });
     }
   });
+
   socket.on('disconnect', function(){
     debug('socket.io - disconnected.')
 
     if (DAEMON.loadReportTimer)
       clearInterval(DAEMON.loadReportTimer);
+
+    DAEMON.broadcast('daemonIdChanged', {daemonId : null});
   });
 
 };

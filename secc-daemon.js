@@ -86,7 +86,8 @@ if (cluster.isMaster) {
   }
 
   //WebSocket.
-  var schedulerUrl = 'http://' + SECC.daemon.scheduler.address + ':' + SECC.daemon.scheduler.port;
+  var schedulerUrl = 'http://' + SECC.daemon.scheduler.address
+                   + ':' + SECC.daemon.scheduler.port;
   var socket = require('socket.io-client')(schedulerUrl);
 
   var daemonWebSocket = require('./routes/daemonWebSocket')(socket, SECC, DAEMON);
@@ -188,9 +189,6 @@ if (cluster.isWorker) {
     }
   }
 
-  var schedulerUrl = 'http://' + SECC.daemon.scheduler.address + ':' + SECC.daemon.scheduler.port;
-  var socket = require('socket.io-client')(schedulerUrl);
-
   // send data to all workers(except me)
   cluster.worker.broadcast = function(event, data) {
     cluster.worker.send({type:'b', event: event, data: data});
@@ -205,7 +203,6 @@ if (cluster.isWorker) {
   }
 
   cluster.worker.on('message', function(msg) {
-    debug(msg);
     if (msg.event === 'addLocalPrepArchiveIdInProgress') {
       DAEMON.Archives.localPrepArchiveIdInProgress[msg.data.archiveId] = new Date();
     } else if (msg.event === 'removeLocalPrepArchiveIdInProgress') {
@@ -218,20 +215,22 @@ if (cluster.isWorker) {
       utils.removePumpArchiveInArray(DAEMON.Archives.localPumpArchivesInProgress, msg.data.pumpArchive.pumpArchiveId);
     } else if (msg.event === 'addLocalPumpArchives') {
       DAEMON.Archives.localPumpArchives.push(msg.data.pumpArchive);
+    } else if (msg.event === 'daemonIdChanged') {
+      DAEMON.daemonId = msg.data.daemonId;
+    } else if (msg.event === 'schedulerArchives') {
+      DAEMON.Archives.schedulerArchives = msg.data;
+    } else {
+      debug('unknown msg!');
+      debug(msg);
     }
   });
 
-  socket.on('schedulerArchives', function(data){
-    //debug(data);
-    DAEMON.Archives.schedulerArchives = data;
-  });
-
   //routers.
-  var daemonIndex = require('./routes/daemonIndex')(express, socket, SECC, DAEMON);
-  var daemonNative = require('./routes/daemonNative')(express, socket, SECC, DAEMON);
-  var daemonCache = require('./routes/daemonCache')(express, socket, SECC, DAEMON);
-  var daemonCompilePreprocessed = require('./routes/daemonCompilePreprocessed')(express, socket, SECC, DAEMON);
-  var daemonCompilePump = require('./routes/daemonCompilePump')(express, socket, SECC, DAEMON);
+  var daemonIndex = require('./routes/daemonIndex')(express, SECC, DAEMON);
+  var daemonNative = require('./routes/daemonNative')(express, SECC, DAEMON);
+  var daemonCache = require('./routes/daemonCache')(express, SECC, DAEMON);
+  var daemonCompilePreprocessed = require('./routes/daemonCompilePreprocessed')(express, SECC, DAEMON);
+  var daemonCompilePump = require('./routes/daemonCompilePump')(express, SECC, DAEMON);
 
   app.use('/', daemonIndex);
   app.use('/native/', daemonNative);

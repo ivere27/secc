@@ -4,7 +4,7 @@ var debug = require('debug')('secc:'+process.pid+':routes:daemonNative');
 
 var environment = require('../lib/environment.js');
 
-module.exports = function(express, socket, SECC, DAEMON) {
+module.exports = function(express, SECC, DAEMON) {
   var router = express.Router();
 
   var Archives = DAEMON.Archives;
@@ -23,8 +23,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
       if(results.clang)
         systemInformation.clang = results.clang;
 
-      if(socket && socket.connected)
-        systemInformation.daemonId = socket.id;
+      systemInformation.daemonId = DAEMON.daemonId;
 
       res.send(systemInformation);
     });

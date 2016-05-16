@@ -12,7 +12,7 @@ var compile = require('../lib/compile.js');
 var environment = require('../lib/environment.js');
 var utils = require('../lib/utils.js');
 
-module.exports = function(express, socket, SECC, DAEMON) {
+module.exports = function(express, SECC, DAEMON) {
   var router = express.Router();
 
   var Archives = DAEMON.Archives;
@@ -44,7 +44,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
 
       var responseError = function() {
         debug('cache not exists.')
-        if (socket.connected) socket.emit('cacheNotExists', metaData);
+        DAEMON.worker.emitToScheduler('cacheNotExists', metaData);
 
         return res.status(400).send('object cache not exists');
       }
@@ -84,7 +84,7 @@ module.exports = function(express, socket, SECC, DAEMON) {
 
       readable.pipe(res);
 
-      if (socket.connected) socket.emit('cacheExists', metaData);
+      DAEMON.worker.emitToScheduler('cacheExists', metaData);
     });
 
   })
