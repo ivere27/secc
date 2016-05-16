@@ -6,6 +6,7 @@ var utils = require('./lib/utils.js');
 
 var cluster = require('cluster');
 var crypto = require('crypto');
+var fs = require('fs');
 var os = require('os');
 var path = require('path');
 
@@ -29,15 +30,17 @@ SECC.daemon.redis.port = process.env.REDIS_PORT || SECC.daemon.redis.port;
 if (!SECC.runPath || SECC.runPath === '')
   SECC.runPath = path.join(os.tmpdir(), 'secc', 'run');
 if (!SECC.uploadPath || SECC.uploadPath === '')
-  SECC.uploadPath = path.join(os.tmpdir(), 'secc', 'upload');
+  SECC.uploadPath = path.join(os.tmpdir(), 'secc', 'daemon_upload');
 if (!SECC.toolPath || SECC.toolPath === '')
     SECC.toolPath = path.join(__dirname, 'tool');
 
-require('mkdirp').sync(SECC.runPath);
-require('mkdirp').sync(SECC.uploadPath);
-
 if (cluster.isMaster) {
   debug = require('debug')('secc:'+process.pid+':daemon:master');
+
+  //mkdir directories
+  require('mkdirp').sync(SECC.runPath);
+  require('mkdirp').sync(SECC.uploadPath);
+  fs.chmodSync(path.join(os.tmpdir(), 'secc'), '0777');
 
   var redisClient = null;
   if (SECC.daemon.cache) { //cache enabled.
