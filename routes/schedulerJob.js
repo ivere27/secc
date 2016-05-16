@@ -58,7 +58,8 @@ module.exports = function(express, io, SECC, SCHEDULER) {
                        ,dumpversion : job.compilerInformation.dumpversion
                        ,dumpmachine : job.compilerInformation.dumpmachine};
 
-    if (job.compilerInformation.version.indexOf('gcc') !== -1)
+    if ( job.compilerInformation.version.indexOf('gcc') !== -1
+      || job.compilerInformation.version.indexOf('g++') !== -1)
       information.compiler = 'gcc'
     else if (job.compilerInformation.version.indexOf('clang') !== -1)
       information.compiler = 'clang'

@@ -2,7 +2,6 @@
 
 var debug = require('debug')('secc:'+process.pid+':routes:daemonCompilePreprocessed');
 
-var mkdirp = require('mkdirp');
 var path = require('path');
 var zlib = require('zlib');
 var querystring = require('querystring');

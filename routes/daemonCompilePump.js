@@ -2,6 +2,7 @@
 
 var debug = require('debug')('secc:'+process.pid+':routes:daemonCompilePump');
 
+var fs = require("fs");
 var mkdirp = require('mkdirp');
 var path = require('path');
 var zlib = require('zlib');
@@ -115,7 +116,6 @@ module.exports = function(express, SECC, DAEMON) {
 
     debug('filecheck files...')
     //debug(files);
-    var fs = require("fs");
 
     async.forEachOf(files, function (value, key, callback) {
       fs.stat(archivePath + key, function(err,stats) {
@@ -174,7 +174,6 @@ module.exports = function(express, SECC, DAEMON) {
       archivePath : archivePath};
 
     var deleteAllUploadFiles = function(file, callback){
-      var fs = require("fs");
       if (jobId) DAEMON.worker.emitToScheduler('compileLocal', { jobId: jobId });
 
       fs.unlink(file.path, function(err){
@@ -212,7 +211,6 @@ module.exports = function(express, SECC, DAEMON) {
 
       process.nextTick(function(){
         //download from scheduler. FIXME : make as a function. and loop.
-        var fs = require('fs');
         var pumpArchiveToInstall = Archives.localPumpArchivesInProgress[Archives.localPumpArchivesInProgress.length-1];
 
         var http = require('http');
@@ -282,7 +280,7 @@ module.exports = function(express, SECC, DAEMON) {
     var workingDirectory = req.body.workingDirectory;
 
     //file extract..
-    console.log(source);
+    debug(source);
 
     var tar = require('tar');
     var extract = tar.Extract({path: archivePath});
@@ -312,11 +310,22 @@ module.exports = function(express, SECC, DAEMON) {
               workingDirectory : workingDirectory
             };
 
-        compileWrapper(req, res, options);
+        //check workingDictory. prevent '../../'
+        var cwd = path.join(options.buildRoot, path.normalize(path.join('/', options.workingDirectory)));
+        debug({cwd : cwd});
+
+        fs.stat(cwd, function(err, stats){
+          if (err) {
+            if (err.code == 'ENOENT')
+              mkdirp.sync(cwd);
+            else
+              return res.status(400).send(err);
+          }
+          compileWrapper(req, res, options);
+        });
       });
     });
 
-    var fs = require("fs");
     var gzipPack = fs.createReadStream(path.join(SECC.uploadPath, source.filename))
     gzipPack.on('error', function(err){
       return deleteAllUploadFiles(req.file, function(err){
