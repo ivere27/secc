@@ -210,31 +210,6 @@ require('async').waterfall([
     })
   },
 
-  //get right outputPath, sourcePath.
-  function(callback) {
-    var options = {compiler: job.compilerPath, argv: job.argv};
-    var compile = require('./lib/compile.js');
-    compile.GetDependencies(options).on('finish', function(err, compileFile) {
-      if (err) {
-        debug('GetDependencies Error Raised.');
-        debug(options);
-        return callback(err);  //GetDependencies error.
-      }
-
-      debug('GetDependencies done. compileFile is....')
-      debug('source : %s, object : %s, dependencies total : %d'
-        ,compileFile.sourceFile, compileFile.objectFile, compileFile.dependencies.length);
-
-      //FIXME : arrange right outputPath and sourcePath.
-      job.compileFile = compileFile;
-      job.outputPath = job.outfile || compileFile.objectFile;
-      job.sourcePath = job.infile || compileFile.sourceFile;
-      debug('arranged sourcePath %s , outputPath %s', job.sourcePath, job.outputPath);
-
-      callback(null);
-    });
-  },
-
   //mode
   function(callback) {
     if(job.mode == '2') { //performPumpMode
