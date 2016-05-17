@@ -8,7 +8,7 @@ a project of 'Second Compiler'.
 - Preprocessed and Pump Mode
 - Memory Cache(works like remote Ccache)
 - Debug fission(-gsplit-dwarf option) supports.
-- Monitoring by Browser(WebSocket)
+- Monitoring by Browser(Navigate to http://SCHEDULER:PORT)
 - Cross-compile(Various version/machine of compiler in network) supports
 - Gcc / Clang support
 
