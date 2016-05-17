@@ -13,7 +13,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
 
   //sockets.
   io.on('connection', function(socket){
-    debug('io connect!!! %s', socket.id);
+    debug('io connect. id : %s, address : %s', socket.id, socket.handshake.address);
 
     var daemonAddress = socket.handshake.address;
     var idx = daemonAddress.lastIndexOf(':');
@@ -35,10 +35,13 @@ module.exports = function(express, io, SECC, SCHEDULER) {
       socket.emit('event', { hello: 'world' });
     });
     socket.on('disconnect', function(){
-      debug('io disconnect!!! %s', socket.id);
+      debug('io disconnect. id : %s, address : %s', socket.id, socket.handshake.address);
+
       cm.removeDaemon(socket.id);
       dm.removeDaemon(socket.id);
       jm.removeDaemon(socket.id);
+
+      io.emit('daemonList', dm.getDaemonList());
     });
     socket.on('event', function(metaData){
       debug(metaData);

@@ -9,7 +9,7 @@ module.exports = function(socket, SECC, DAEMON) {
 
   socket.on('connect', function(){
     //console.log(socket);
-    debug('socket.io - connected.')
+    console.log('secc-scheduler %s:%s connected.', SECC.daemon.scheduler.address, SECC.daemon.scheduler.port);
 
     environment.getGccClangCompilerInformation(function(err, results) {
       if(err)
@@ -63,7 +63,7 @@ module.exports = function(socket, SECC, DAEMON) {
   });
 
   socket.on('disconnect', function(){
-    debug('socket.io - disconnected.')
+    console.log('secc-scheduler disconnected.')
 
     if (DAEMON.loadReportTimer)
       clearInterval(DAEMON.loadReportTimer);

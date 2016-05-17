@@ -47,7 +47,8 @@ module.exports = function(express, io, SECC, SCHEDULER) {
       crossPrefered : json.crossPrefered,
       sourcePath : json.sourcePath,
       sourceHash : json.sourceHash,
-      argvHash : json.argvHash
+      argvHash : json.argvHash,
+      clientAddress : req.connection.remoteAddress
     });
 
     //get suitable archiveId
