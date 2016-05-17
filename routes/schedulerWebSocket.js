@@ -84,18 +84,24 @@ module.exports = function(express, io, SECC, SCHEDULER) {
       debug(metaData);
       dm.increaseJobCount(socket.id);
 
-      if (metaData.jobId) {
-        io.emit("compileBefore", {daemonId : socket.id, jobId : metaData.jobId, workerId : metaData.workerId, timestamp: new Date()});
-      }
+      io.emit("compileBefore", { daemonId : socket.id
+                               , jobId : metaData.jobId || null
+                               , jobs : dm.getJobCount(socket.id)
+                               , workerId : metaData.workerId
+                               , timestamp: new Date()});
     });
     socket.on('compileAfter', function(metaData){
       debug(metaData);
       dm.decreaseJobCount(socket.id);
 
-      if (metaData.jobId) {
+      if (metaData.jobId)
         jm.removeJob(metaData.jobId);
-        io.emit("compileAfter", {daemonId : socket.id, jobId : metaData.jobId, workerId : metaData.workerId, timestamp: new Date()});
-      }
+
+      io.emit("compileAfter", { daemonId : socket.id
+                              , jobId : metaData.jobId || null
+                              , jobs : dm.getJobCount(socket.id)
+                              , workerId : metaData.workerId
+                              , timestamp: new Date()});
     });
     socket.on('compileLocal', function(metaData){
       debug(metaData);

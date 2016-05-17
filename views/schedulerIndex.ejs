@@ -1,9 +1,119 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <% include header.ejs %>
 </head>
+<style>
+.node circle {
+  cursor: pointer;
+  fill : #ffffff;
+  stroke: #000000;
+  stroke-width: 0.5px;
+}
+
+.node text {
+  text-anchor: middle;
+}
+
+line.link {
+  stroke: #000000;
+  stroke-width: 0.5px;
+}
+</style>
+<body>
 <script>
+  var SeccForceGraph = function(width, height) {
+    var self = this;
+    var daemons = null;
+    var nodes = [];
+
+    var force = d3.layout.force()
+        .linkDistance(200)
+        .charge(-120)
+        .gravity(.05)
+        .size([width, height])
+        .on("tick", tick);
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    var link = svg.selectAll(".link"),
+        node = svg.selectAll(".node");
+
+    this.draw = function(daemons){
+      this.daemons = daemons;
+      nodes = [];
+
+      var root = {id: "scheduler", name: "scheduler", size:20, children: []};
+      nodes.push(root);
+      daemons.map(function(e){
+        e.id = e.daemonId;
+        e.name = e.daemonId;
+        e.size = 50;
+        e.children = [];
+        nodes.push(e);
+        root.children.push(e);
+      });
+
+      updateGraph();
+    }
+
+    this.updateDaemon = function(msg) {
+      //FIXME : effects more!!
+      d3.select("#text_" + msg.daemonId).text(msg.timestamp);
+      d3.select("#node_" + msg.daemonId)
+        .transition()
+        .duration(100)
+        .style("stroke-width", msg.jobs + "px");
+    };
+
+    var updateGraph = function() {
+      var links = d3.layout.tree().links(nodes);
+
+      force.nodes(nodes)
+           .links(links)
+           .start();
+
+      link = link.data(links, function(d) { return d.target.id; });
+      link.exit().remove();
+      link.enter().insert("line", ".node")
+                  .attr("class", "link");
+
+      node = node.data(nodes, function(d) { return d.id; });
+      node.exit().remove();
+
+      var nodeEnter = node.enter().append("g").attr("class", "node").call(force.drag);
+      nodeEnter.append("circle")
+               .attr("r", function(d) { return d.size;})
+               .attr("id", function(d) { return "node_" + d.daemonId;});
+
+      nodeEnter.append("text")
+               .text(function(d) { return d.name; });
+
+      nodeEnter.append("text")
+               .attr("dy", "20px")
+               .attr("id", function(d) { return "text_" + d.daemonId;})
+               .text(function(d) { return ""; });
+
+      node.select("circle").style("fill", function(d){
+        if (d.id === "scheduler")
+          return "#ffffff";
+
+        return (d.type === "daemon") ? "#03A9F4" : "#FFEB3B";
+      });
+    }
+
+    function tick() {
+      link.attr("x1", function(d) {return d.source.x;})
+          .attr("y1", function(d) {return d.source.y;})
+          .attr("x2", function(d) {return d.target.x;})
+          .attr("y2", function(d) {return d.target.y;});
+      node.attr("transform", function(d) {return "translate(" + d.x + "," + d.y + ")";});
+    }
+  }
+
+  //scheduler events
   var socket = io();
 
   socket.on('newJob', function(msg){
@@ -20,29 +130,26 @@
 
   socket.on('compileBefore', function(msg){
     console.log('compileBefore ' + JSON.stringify(msg));
+    graph.updateDaemon(msg);
   });
-
   socket.on('compileAfter', function(msg){
     console.log('compileAfter '+JSON.stringify(msg));
+    graph.updateDaemon(msg);
   });
 
   socket.on('schedulerArchives', function(msg){
     console.log('schedulerArchives');
     console.log(msg);
   });
+
   socket.on('daemonList', function(msg){
     console.log('daemonList');
     console.log(msg);
-  });
-</script>
-<body>
-  Hello World :) in Scheduler. <%= a%>
 
-  <svg width="100%" height="100%">
-    <circle cx="40" cy="60" r="30" style="fill:steelblue;"></circle>
-    <circle cx="80" cy="60" r="30" style="fill:steelblue;"></circle>
-    <circle cx="120" cy="60" r="30" style="fill:steelblue;"></circle>
-  </svg>
-  
+    graph.draw(msg);
+  });
+
+  var graph = new SeccForceGraph(800, 600);
+</script>
 </body>
 </html>
