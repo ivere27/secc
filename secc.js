@@ -122,16 +122,30 @@ if (['cc', 'clang', 'gcc'].indexOf(job.command) !== -1) {
   process.exit(1);
 }
 
-job.compiler = fs.realpathSync(job.compilerPath);
-if (job.compiler.indexOf('clang') !== -1)
+job.driver = job.command;
+var compilerRealpath = fs.realpathSync(job.compilerPath);
+if (compilerRealpath.indexOf('clang') !== -1) {
   job.compiler = 'clang';
-else if ((job.compiler.indexOf('gcc') !== -1) || (job.compiler.indexOf('g++') !== -1))
+
+  if (job.command === 'cc')
+    job.driver = 'clang';
+  else if (job.command === 'c++')
+    job.driver = 'clang++';
+}
+else if ((compilerRealpath.indexOf('gcc') !== -1)
+      || (compilerRealpath.indexOf('g++') !== -1)) {
   job.compiler = 'gcc';
+
+  if (job.command === 'cc')
+    job.driver = 'gcc';
+  else if (job.command === 'c++')
+    job.driver = 'g++';
+}
 else
   return passThrough();
 
 //quick check
-if ( (job.argv.indexOf('-c') === -1)
+if ( (job.argv.indexOf('-c') === -1)  //absent '-c'
   || (process.cwd().indexOf('CMakeFiles') !== -1)) //always passThrough in CMakeFiles
   return passThrough();
 

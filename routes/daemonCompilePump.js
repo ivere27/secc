@@ -29,6 +29,7 @@ module.exports = function(express, SECC, DAEMON) {
     var contentEncoding = req.headers['content-encoding'] || '';
 
     options.compiler = req.headers['secc-compiler'] || 'gcc';
+    options.driver = req.headers['secc-driver'] || 'gcc';
 
     if (options.archive) {
       if(options.archive.compiler === 'gcc' && options.compiler === 'c++')

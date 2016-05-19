@@ -23,7 +23,7 @@ var addFileList = [];
 var tempDirectory = null;
 var contentsHash = null;
 
-var compilerName = null; //gcc || clang
+var compiler = null; //gcc || clang
 var compilerPath = null;
 
 var ccPath = null;
@@ -36,7 +36,7 @@ function howto() {
 }
 
 if (argv.indexOf('--gcc') !== -1) {
-  compilerName = 'gcc';
+  compiler = 'gcc';
   compilerPath = argv[argv.indexOf('--gcc')+1];
   ccPath = argv[argv.indexOf('--gcc')+1];
   cppPath = argv[argv.indexOf('--gcc')+2];
@@ -44,7 +44,7 @@ if (argv.indexOf('--gcc') !== -1) {
   addList[ccPath] = {target : '/usr/bin/gcc'};
   addList[cppPath] = {target : '/usr/bin/g++'};
 } else if (argv.indexOf('--clang') !== -1) {
-  compilerName = 'clang';
+  compiler = 'clang';
   compilerPath = argv[argv.indexOf('--clang')+1];
   ccPath = argv[argv.indexOf('--clang')+1];
   cppPath = argv[argv.indexOf('--clang')+2];
@@ -69,7 +69,7 @@ console.log('SECC archive generator.');
 async.series([
   //add cc1
   function(callback){
-    if (compilerName === 'clang')
+    if (compiler === 'clang')
       return callback(null);
 
     callChildProcess(compilerPath + ' -print-prog-name=cc1', function(err, stdout, stderr){
@@ -81,7 +81,7 @@ async.series([
   },
   //add cc1plus
   function(callback){
-    if (compilerName === 'clang')
+    if (compiler === 'clang')
       return callback(null);
 
     callChildProcess(compilerPath + ' -print-prog-name=cc1plus', function(err, stdout, stderr){
@@ -93,7 +93,7 @@ async.series([
   },
   //add liblto_plugin.so
   function(callback){
-    if (compilerName === 'clang')
+    if (compiler === 'clang')
       return callback(null);
 
     callChildProcess(compilerPath + ' -print-file-name=liblto_plugin.so', function(err, stdout, stderr){
@@ -105,7 +105,7 @@ async.series([
   },
   //add 'includes' symbolic link for clang.
   function(callback){
-    if (compilerName === 'gcc')
+    if (compiler === 'gcc')
       return callback(null);
 
     environment.getClangCompilerVersionByMacro(compilerPath, function(err, versionString, versionObject){
@@ -131,7 +131,7 @@ async.series([
   },
   //when clang and clang++ are same(mostly), just make a symbolic link.
   function(callback){
-    if (compilerName === 'gcc')
+    if (compiler === 'gcc')
       return callback(null);
 
     if (fs.realpathSync(ccPath) === fs.realpathSync(cppPath)) {

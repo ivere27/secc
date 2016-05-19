@@ -25,6 +25,7 @@ module.exports = function(express, SECC, DAEMON) {
     var contentEncoding = req.headers['content-encoding'] || '';
 
     options.compiler = req.headers['secc-compiler'] || 'gcc';
+    options.driver = req.headers['secc-driver'] || 'gcc';
 
     if (options.archive) {
       if(options.archive.compiler === 'gcc' && options.compiler === 'c++')
@@ -80,9 +81,10 @@ module.exports = function(express, SECC, DAEMON) {
       if (code || code == 0) res.setHeader('secc-code', code);
 
       if (err) {
+        // FIXME : require error reporting.
         debug('compilePipeStream compile ERROR!!');
-        debug(stderr);
         debug(err);
+        debug(stderr);
 
         if (jobId) DAEMON.worker.emitToScheduler('compileAfter', { jobId: jobId , error: err.message });
 
@@ -96,6 +98,7 @@ module.exports = function(express, SECC, DAEMON) {
       if (jobId) DAEMON.worker.emitToScheduler('compileAfter', { jobId: jobId });
     });
 
+    //pipe magic. req -> (unzip) -> CompileStream -> on'finish' -> res
     if (contentEncoding === 'gzip') {
       output = req.pipe(zlib.createGunzip()).pipe(compilePipeStream);
     } else if (contentEncoding === 'deflate') {

@@ -27,7 +27,7 @@ var addFileList = [];
 var tempDirectory = null;
 var contentsHash = null;
 
-var compilerName = null; //clang
+var compiler = null; //clang
 var compilerPath = null;
 
 var ccPath = null;
@@ -45,7 +45,7 @@ function howto() {
 }
 
 if (argv.indexOf('--clang') !== -1) {
-  compilerName = 'clang';
+  compiler = 'clang';
   compilerPath = argv[argv.indexOf('--clang')+1];
   ccPath = argv[argv.indexOf('--clang')+1];
   cppPath = argv[argv.indexOf('--clang')+2];
