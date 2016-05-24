@@ -1,6 +1,7 @@
 'use strict';
 
 var debug = require('debug')('secc:routes:schedulerJob');
+var path = require('path');
 var utils = require('../lib/utils');
 
 module.exports = function(express, io, SECC, SCHEDULER) {
@@ -111,7 +112,9 @@ module.exports = function(express, io, SECC, SCHEDULER) {
             cross : false,
             daemonId : bestDaemonId,
             archiveId : archiveInfo.archiveId,
-            timestamp: new Date()});
+            timestamp: new Date(),
+            source: path.basename(job.sourcePath)
+          });
 
           var data = {
             jobId : job.id,
@@ -154,7 +157,9 @@ module.exports = function(express, io, SECC, SCHEDULER) {
           cross : candidateDaemons[bestDaemonId].cross,
           daemonId : bestDaemonId,
           archiveId : (candidateDaemons[bestDaemonId].cross) ? candidateDaemons[bestDaemonId].archiveId : archiveInfo.archiveId,
-          timestamp: new Date()});
+          timestamp: new Date(),
+          source: path.basename(job.sourcePath)
+        });
 
           var data = {
                     jobId : job.id,
