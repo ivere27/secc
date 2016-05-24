@@ -50,7 +50,7 @@ line.link {
       daemons.map(function(e){
         e.id = e.daemonId;
         e.name = e.daemonId;
-        e.size = 50;
+        e.size = (e.type === "guest") ? 30 : 50;
         e.children = [];
         nodes.push(e);
         root.children.push(e);
@@ -63,9 +63,10 @@ line.link {
       //FIXME : effects more!!
       d3.select("#text_" + msg.daemonId).text(msg.timestamp);
       d3.select("#node_" + msg.daemonId)
-        .transition()
-        .duration(100)
-        .style("stroke-width", msg.jobs + "px");
+        .transition().duration(100).style("stroke-width", msg.jobs + "px");
+      d3.select("#line_" + msg.daemonId)
+        .transition().duration(100).style("stroke-width", "1px")
+        .transition().duration(100).style("stroke-width", "0.5px");
     };
 
     var updateGraph = function() {
@@ -78,7 +79,8 @@ line.link {
       link = link.data(links, function(d) { return d.target.id; });
       link.exit().remove();
       link.enter().insert("line", ".node")
-                  .attr("class", "link");
+                  .attr("class", "link")
+                  .attr("id", function(d) { return "line_" + d.target.daemonId;});
 
       node = node.data(nodes, function(d) { return d.id; });
       node.exit().remove();
@@ -89,7 +91,13 @@ line.link {
                .attr("id", function(d) { return "node_" + d.daemonId;});
 
       nodeEnter.append("text")
-               .text(function(d) { return d.name; });
+               .text(function(d) {
+                  if (d.id === "scheduler")
+                    return "scheduler";
+                  if (d.type === 'daemon')
+                    return d.system.hostname;
+                  return 'observer';
+                });
 
       nodeEnter.append("text")
                .attr("dy", "20px")
@@ -100,7 +108,7 @@ line.link {
         if (d.id === "scheduler")
           return "#ffffff";
 
-        return (d.type === "daemon") ? "#03A9F4" : "#FFEB3B";
+        return (d.type === "daemon") ? "rgb(3, 169, 244)" : "rgba(255, 235, 59, 0.2)";
       });
     }
 
