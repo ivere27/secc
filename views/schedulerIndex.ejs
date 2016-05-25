@@ -22,7 +22,7 @@ line.link {
 </style>
 <body>
 <script>
-  var SeccForceGraph = function(width, height) {
+  var SeccForceGraph = function() {
     var self = this;
     var daemons = null;
     var nodes = [];
@@ -31,12 +31,16 @@ line.link {
         .linkDistance(200)
         .charge(-120)
         .gravity(.05)
-        .size([width, height])
         .on("tick", tick);
 
-    var svg = d3.select("body").append("svg")
-        .attr("width", width)
-        .attr("height", height);
+    var svg = d3.select("body").style("overflow", "hidden").append("svg");
+
+    window.addEventListener('resize', function() {
+        width = window.innerWidth, height = window.innerHeight;
+        svg.attr("width", width).attr("height", height);
+        force.size([width, height]).resume();
+    });
+    window.dispatchEvent(new Event('resize'));
 
     var link = svg.selectAll(".link"),
         node = svg.selectAll(".node");
@@ -157,7 +161,7 @@ line.link {
     graph.draw(msg);
   });
 
-  var graph = new SeccForceGraph(800, 600);
+  var graph = new SeccForceGraph();
 </script>
 </body>
 </html>
