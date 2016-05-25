@@ -17,5 +17,9 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     res.render('schedulerViewStar');
   });
 
+  router.get('/cluster', function(req, res) {
+    res.render('schedulerViewCluster');
+  });
+
   return router;
 };

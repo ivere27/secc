@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include header.ejs %>
+</head>
+<style>
+.node circle {
+  fill: #fff;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.node {
+  font: 10px sans-serif;
+}
+
+.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 1.5px;
+}
+</style>
+<body>
+<script>
+  var SeccClusterGraph = function() {
+    var self = this;
+    var daemons = null;
+    var root = null;
+    var nodes = [];
+
+    var radius = 960 / 2;
+    var cluster = d3.layout.cluster()
+        .size([360, radius - 120]);
+
+    var diagonal = d3.svg.diagonal.radial()
+        .projection(function(d) { return [d.y, d.x / 180 * Math.PI]; });
+
+    var svg = d3.select("body").style("overflow", "hidden")
+                .append("svg")
+                .attr("width", radius * 2)
+                .attr("height", radius * 2)
+                .append("g")
+                .attr("transform", "translate(" + radius + "," + radius + ")");
+
+    this.draw = function(daemons){
+      self.daemons = daemons;
+      nodes = [];
+
+      root = {id: "scheduler", name: "scheduler", children: []};
+      daemons.map(function(e){
+        e.id = e.daemonId;
+        e.name = e.daemonId;
+        e.children = [];
+
+        root.children.push(e);
+      });
+
+      nodes = cluster.nodes(root);
+      console.log(nodes)
+      updateGraph();
+    }
+
+    // FIXME : this is a POC(proof of concept)
+    //         without any refactoring.
+
+    this.insertDaemonJob = function(msg) {
+      for (var i in root.children) {
+        if (root.children[i].daemonId === msg.daemonId) {
+          msg.id = "job_" + msg.jobId;
+          msg.name = msg.id;
+
+          root.children[i].children = root.children[i].children || [];
+          root.children[i].children.push(msg);
+          break;
+        }
+      }
+
+      nodes = cluster.nodes(root);
+      updateGraph();
+    };
+    this.deleteDaemonJob = function(msg) {
+      for (var i in root.children) {
+        if (root.children[i].daemonId === msg.daemonId) {
+          for (var j in root.children[i].children) {
+            if (root.children[i].children[j].jobId === msg.jobId) {
+              root.children[i].children.splice(j,1);
+              break;
+            }
+          }
+        }
+      }
+      nodes = cluster.nodes(root);
+      updateGraph();
+    };
+
+    var updateGraph = function() {
+      svg.selectAll("path.link").remove();
+      svg.selectAll("g.node").remove();
+
+      var link = svg.selectAll("path.link")
+                    .data(cluster.links(nodes))
+                    .enter().append("path")
+                    .attr("class", "link")
+                    .attr("d", diagonal);
+
+      var node = svg.selectAll("g.node")
+                    .data(nodes)
+                    .enter().append("g")
+                    .attr("class", "node")
+                    .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; })
+
+      node.append("circle")
+          .attr("r", 4.5);
+
+      node.append("text")
+          .attr("dy", ".31em")
+          .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+          .attr("transform", function(d) { return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
+          .text(function(d) { return d.name; });
+
+      d3.select(self.frameElement).style("height", radius * 2 + "px");
+    }
+  }
+
+  //scheduler events
+  var socket = io();
+
+  socket.on('newJob', function(msg){
+    console.log('newJob ' + JSON.stringify(msg));
+  });
+
+  socket.on('cacheHitSucceeded', function(msg){
+    console.log('cacheHitSucceeded ' + JSON.stringify(msg));
+  });
+
+  socket.on('cacheHitFailed', function(msg){
+    console.log('cacheHitFailed ' + JSON.stringify(msg));
+  });
+
+  socket.on('compileBefore', function(msg){
+    console.log('compileBefore ' + JSON.stringify(msg));
+    graph.insertDaemonJob(msg);
+  });
+  socket.on('compileAfter', function(msg){
+    console.log('compileAfter '+JSON.stringify(msg));
+    graph.deleteDaemonJob(msg);
+  });
+
+  socket.on('schedulerArchives', function(msg){
+    console.log('schedulerArchives');
+    console.log(msg);
+  });
+
+  socket.on('daemonList', function(msg){
+    console.log('daemonList');
+    console.log(msg);
+
+    graph.draw(msg);
+  });
+
+  var graph = new SeccClusterGraph();
+</script>
+</body>
+</html>
