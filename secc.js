@@ -157,6 +157,7 @@ require('async').waterfall([
     var http = require("http");
     var formData = {
       compiler : job.compiler,
+      driver : job.driver,
       cwd : process.cwd(),
       mode : job.mode,
       argv : job.argv

@@ -13,13 +13,13 @@ module.exports = function(express, io, SECC, SCHEDULER) {
 
     if (typeof json !== 'object'
       || !Array.isArray(json.argv)
-      || typeof json.compiler === 'undefined'
+      || typeof json.driver === 'undefined'
       || typeof json.cwd === 'undefined'
       || typeof json.mode === 'undefined'
       ) {
       return res.status(400).send('invalid options');
     }
-    var data = om.analyzeArguments(json.argv, json.compiler, json.cwd, json.mode);
+    var data = om.analyzeArguments(json.argv, json.driver, json.cwd, json.mode);
 
     if (req.headers['accept'] === 'text/plain')
       res.send(utils.ObjectToText(data));
