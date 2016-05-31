@@ -67,10 +67,6 @@ in linux case(you can use the specific compiler version),
      node secc-upload-archive.js --clang /usr/bin/clang /usr/bin/clang++ ./secc-create-archive-linux.js http://172.17.42.1:10509
 
 
-#### Alternatives
-* (experimental) [secc-shell](http://github.com/ivere27/secc-shell) - bash shell frontend
-* (experimental) [secc-native](http://github.com/ivere27/secc-native) - native(c++) frontend
-
 ### Daemon - n PC
 
 edit "daemon" part in 'settings.json' file.
