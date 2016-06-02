@@ -1,11 +1,17 @@
-|                    | gcc     | clang   |
-| :-------------     | :------ | :------ |
-| llvm               | tested  | tested  |
-| clang              | tested  | tested  |
-| node.js            | tested  | tested  |
-| webkit - gtk libs  | tested  | tested  |
-| webkit - efl libs  | tested  | tested  |
+| WORKING            | os      | gcc     | clang   |
+| :-------------     | :------ | :------ | :------ |
+| llvm               | linux   | tested  | tested  |
+| clang              | linux   | tested  | tested  |
+| node.js            | linux   | tested  | tested  |
+| webkit - gtk libs  | linux   | tested  | tested  |
+| webkit - efl libs  | linux   | tested  | tested  |
+| webkit - gtk       | linux   | tested  | tested  |
+| webkit - efl       | linux   | tested  | tested  |
 
+
+| TODO               | os      | gcc     | clang   |
+| :-------------     | :------ | :------ | :------ |
+| chromium           | linux   |         |         |
 
 # LLVM
 ```bash
@@ -59,3 +65,29 @@ $ (#optional DEBUG=* SECC_LOG=/tmp/secc.log SECC_CMDLINE=1 \)
 
 * this includes
 cairo, fonts, fontconfig, freetype6, harfbuzz, glib, libsoup, elementary, libxml2, libnice, gstreamer, gst-libav, atk, openwebrtc
+
+
+# webkit - gtk
+```bash
+$ # run update-webkitgtk-libs first.
+$ cd WebKit/Tools/Scripts
+$ (#optional DEBUG=* SECC_LOG=/tmp/secc.log SECC_CMDLINE=1 \)
+  NUMBER_OF_PROCESSORS=16 SECC_ADDRESS=192.168.10.6 SECC_CACHE=1 SECC_CROSS=0 CC=~/open/secc/bin/clang CXX=~/open/secc/bin/clang++ ./build-webkit --gtk --release
+```
+
+# webkit - efl
+```bash
+$ # run update-webkitefl-libs first.
+$ cd WebKit/Tools/Scripts
+$ (#optional DEBUG=* SECC_LOG=/tmp/secc.log SECC_CMDLINE=1 \)
+  NUMBER_OF_PROCESSORS=16 SECC_ADDRESS=192.168.10.6 SECC_CACHE=1 SECC_CROSS=0 CC=~/open/secc/bin/clang CXX=~/open/secc/bin/clang++ ./build-webkit --efl --release
+```
+
+# chromium
+```bash
+$ # set up your environment.
+$ gn gen out/Default
+
+```
+
+* https://www.chromium.org/developers/how-tos/get-the-code
