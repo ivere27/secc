@@ -3,8 +3,9 @@
 var debug = require('debug')('secc:'+process.pid+':routes:daemonCompilePreprocessed');
 
 var path = require('path');
-var zlib = require('zlib');
 var querystring = require('querystring');
+var stream = require('stream');
+var zlib = require('zlib');
 
 var compile = require('../lib/compile.js');
 var environment = require('../lib/environment.js');
@@ -20,10 +21,8 @@ module.exports = function(express, SECC, DAEMON) {
     var jobId = req.headers['secc-jobid'] || null;
     if (jobId) DAEMON.worker.emitToScheduler('compileBefore', { jobId: jobId });
 
+    var contentEncoding = req.headers['content-encoding'];
     var options = options || {};
-
-    var contentEncoding = req.headers['content-encoding'] || '';
-
     options.compiler = req.headers['secc-compiler'] || 'gcc';
     options.driver = req.headers['secc-driver'] || 'gcc';
 
@@ -99,13 +98,12 @@ module.exports = function(express, SECC, DAEMON) {
     });
 
     //pipe magic. req -> (unzip) -> CompileStream -> on'finish' -> res
-    if (contentEncoding === 'gzip') {
-      output = req.pipe(zlib.createGunzip()).pipe(compilePipeStream);
-    } else if (contentEncoding === 'deflate') {
-      output = req.pipe(zlib.createInflate()).pipe(compilePipeStream);
-    } else {
-      output = req.pipe(compilePipeStream);
-    }
+    output = req.pipe(contentEncoding === 'gzip'
+                      ? zlib.createGunzip()
+                      : (contentEncoding === 'deflate'
+                         ? zlib.createInflate()
+                         : stream.PassThrough())
+                     ).pipe(compilePipeStream);
   }
 
   router.post('/native', function (req, res) {

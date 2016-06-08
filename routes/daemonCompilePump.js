@@ -25,9 +25,6 @@ module.exports = function(express, SECC, DAEMON) {
     if (jobId) DAEMON.worker.emitToScheduler('compileBefore', { jobId: jobId });
 
     var options = options || {};
-
-    var contentEncoding = req.headers['content-encoding'] || '';
-
     options.compiler = req.headers['secc-compiler'] || 'gcc';
     options.driver = req.headers['secc-driver'] || 'gcc';
 
