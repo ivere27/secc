@@ -74,6 +74,12 @@ module.exports = function(express, SECC, DAEMON) {
       DAEMON.worker.emitToScheduler('cacheStored', data);
     });
 
+    compilePipeStream.on('error', function(err){
+      debug(err);
+      this.cleanup();
+      res.status(400).send(err.message);
+    });
+
     compilePipeStream.on('finish', function(err, stdout, stderr, code, outArchive) {
       if (stdout) res.setHeader('secc-stdout', querystring.escape(stdout));
       if (stderr) res.setHeader('secc-stderr', querystring.escape(stderr));
@@ -103,7 +109,9 @@ module.exports = function(express, SECC, DAEMON) {
                       : (contentEncoding === 'deflate'
                          ? zlib.createInflate()
                          : stream.PassThrough())
-                     ).pipe(compilePipeStream);
+                     ).on('error', function(err){
+                        compilePipeStream.emit('error', err);
+                     }).pipe(compilePipeStream);
   }
 
   router.post('/native', function (req, res) {
