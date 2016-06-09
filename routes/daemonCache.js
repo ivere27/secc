@@ -48,38 +48,37 @@ module.exports = function(express, SECC, DAEMON) {
         return res.status(400).send('object cache not exists');
       }
 
-      //nothing or data error.
-      if (obj === null
-        || (obj['chunkCount'] === undefined)
-        || (obj['stdout'] === undefined)
-        || (obj['stderr'] === undefined))
+      //nothing or broken data(possibly deleted 'cos of allkeys-lru)
+      try {
+        obj['info'] = JSON.parse(obj['info']);
+      } catch(err){
         return responseError();
+      }
 
-      var chunkCount = parseInt(obj['chunkCount'].toString());
-
+      var chunkCount = parseInt(obj['info']['chunkCount']);
       for (var i = 0; i<chunkCount;i++) {
         if (obj['chunk' + i] === undefined)
           return responseError();
       }
 
-      //obj['stderr'] is stored as String 'undefined' in redis.
-      if (obj['stdout'].toString() !== 'undefined')
-        res.setHeader('secc-stdout', querystring.escape(obj['stdout']));
-      if (obj['stderr'].toString() !== 'undefined')
-        res.setHeader('secc-stderr', querystring.escape(obj['stderr']));
+      var readable = new stream.Readable();
+      for (var i = 0; i<chunkCount;i++) {
+        if (obj['chunk' + i] === undefined)
+          return responseError();
+        readable.push(obj['chunk' + i]);  //FIXME : need to make a stream.
+      }
+      readable.push(null);
+
+      //obj['stdout'] is not stored when it is omited.
+      if (obj['info']['stdout'])
+        res.setHeader('secc-stdout', querystring.escape(obj['info']['stdout']));
+      if (obj['info']['stderr'])
+        res.setHeader('secc-stderr', querystring.escape(obj['info']['stderr']));
 
       debug('hit the cache.');
       debug(metaData);
       res.attachment('cache.tar.gz'); //FIXME : better naming?
       res.writeHead(200);
-
-      var readable = new stream.Readable();
-      for (var i = 0; i<chunkCount;i++) {
-        //debug(i);
-        //debug(obj['chunk' + i]);
-        readable.push(obj['chunk' + i]);  //FIXME : need to make a stream.
-      }
-      readable.push(null);
 
       readable.pipe(res);
 
