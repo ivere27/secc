@@ -109,15 +109,15 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     debug(archive);
 
     //FIXME : need to check archive data type.
-    if ( typeof archive.platform    === 'undefined'
-      || typeof archive.arch        === 'undefined'
-      || typeof archive.compiler    === 'undefined'
-      || typeof archive.version     === 'undefined'
-      || typeof archive.dumpversion === 'undefined'
-      || typeof archive.dumpmachine === 'undefined'
-      || typeof archive.targets     === 'undefined'
-      || typeof archive.archiveLog  === 'undefined'
-      || typeof archive.archiveFile === 'undefined')
+    if ( archive.platform    === undefined
+      || archive.arch        === undefined
+      || archive.compiler    === undefined
+      || archive.version     === undefined
+      || archive.dumpversion === undefined
+      || archive.dumpmachine === undefined
+      || archive.targets     === undefined
+      || archive.archiveLog  === undefined
+      || archive.archiveFile === undefined)
      return res.status(400).send('invalid archive data');
 
     //generate archiveId in server side

@@ -13,9 +13,9 @@ module.exports = function(express, io, SECC, SCHEDULER) {
 
     if (typeof json !== 'object'
       || !Array.isArray(json.argv)
-      || typeof json.driver === 'undefined'
-      || typeof json.cwd === 'undefined'
-      || typeof json.mode === 'undefined'
+      || json.driver === undefined
+      || json.cwd    === undefined
+      || json.mode   === undefined
       ) {
       return res.status(400).send('invalid options');
     }

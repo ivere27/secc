@@ -57,7 +57,7 @@ function callChildProcess(command, options, cb) {
   var exec = require('child_process').exec,
       child;
 
-  if (typeof cb === 'undefined')
+  if (typeof cb !== 'function')
     child = exec(command, options);
   else
     child = exec(command, options, cb);
@@ -66,8 +66,7 @@ function callChildProcess(command, options, cb) {
 var debug = require('debug')('secc:tool');
 function addFile(object, filePath, targetPath, cb, level) {
   if (object.hasOwnProperty(filePath)) return cb(null);
-  if (typeof level === 'undefined')
-    var level = 0;
+  var level = (level === undefined) ? 0 : level;
   debug((" " + level).slice(-2) + ' level. path is : ' + filePath);
 
   object[filePath] = {target : targetPath};

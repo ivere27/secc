@@ -59,7 +59,7 @@ function callChildProcess(command, options, cb) {
   var exec = require('child_process').exec,
       child;
 
-  if (typeof cb === 'undefined')
+  if (typeof cb !== 'function')
     child = exec(command, options);
   else
     child = exec(command, options, cb);

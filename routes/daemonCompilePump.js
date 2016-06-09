@@ -46,18 +46,18 @@ module.exports = function(express, SECC, DAEMON) {
 
     var output;
 
-    if (typeof req.headers['secc-language'] !== 'undefined')
+    if (req.headers['secc-language'] !== undefined)
       options.language = req.headers['secc-language'];
 
-    if (typeof req.headers['secc-filename'] !== 'undefined')
+    if (req.headers['secc-filename'] !== undefined)
       options.fileName = req.headers['secc-filename'];
 
-    if (typeof req.headers['secc-outfile'] !== 'undefined')
+    if (req.headers['secc-outfile'] !== undefined)
       options.outfile = req.headers['secc-outfile'];
 
-    if (typeof req.headers['secc-cross'] !== 'undefined')
+    if (req.headers['secc-cross'] !== undefined)
       options.cross = (req.headers['secc-cross'] == 'true') ? true : false;
-    if (typeof req.headers['secc-target'] !== 'undefined')
+    if (req.headers['secc-target'] !== undefined)
       options.target = req.headers['secc-target'];
 
     //using stdin pipe. NOPE! it's pump mode.

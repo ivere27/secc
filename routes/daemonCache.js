@@ -50,15 +50,15 @@ module.exports = function(express, SECC, DAEMON) {
 
       //nothing or data error.
       if (obj === null
-        || (typeof obj['chunkCount'] === 'undefined')
-        || (typeof obj['stdout'] === 'undefined')
-        || (typeof obj['stderr'] === 'undefined'))
+        || (obj['chunkCount'] === undefined)
+        || (obj['stdout'] === undefined)
+        || (obj['stderr'] === undefined))
         return responseError();
 
       var chunkCount = parseInt(obj['chunkCount'].toString());
 
       for (var i = 0; i<chunkCount;i++) {
-        if (typeof obj['chunk' + i] === 'undefined')
+        if (obj['chunk' + i] === undefined)
           return responseError();
       }
 
