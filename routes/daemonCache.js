@@ -51,18 +51,13 @@ module.exports = function(express, SECC, DAEMON) {
       //nothing or broken data(possibly deleted 'cos of allkeys-lru)
       try {
         obj['info'] = JSON.parse(obj['info']);
+        obj['info']['chunkCount'] |= 0;
       } catch(err){
         return responseError();
       }
 
-      var chunkCount = parseInt(obj['info']['chunkCount']);
-      for (var i = 0; i<chunkCount;i++) {
-        if (obj['chunk' + i] === undefined)
-          return responseError();
-      }
-
       var readable = new stream.Readable();
-      for (var i = 0; i<chunkCount;i++) {
+      for (var i = 0; i<obj['info']['chunkCount'];i++) {
         if (obj['chunk' + i] === undefined)
           return responseError();
         readable.push(obj['chunk' + i]);  //FIXME : need to make a stream.
