@@ -96,47 +96,59 @@ module.exports = function(express, io, SECC, SCHEDULER) {
 
 
   router.post('/', function (req, res) {
-    debug(req.body);
-    debug(req.file);
-
     try {
       var archive = JSON.parse(req.body.archive);
     } catch(e) {
       debug("req.body.archive is not a json string. not serializable.")
-      return res.status(400).send('wrong json string');
     }
 
-    debug(archive);
+    // check the input data.
+    // FIXME : need to check archive data type.
+    try {
+      if ( archive.platform    === undefined
+        || archive.arch        === undefined
+        || archive.compiler    === undefined
+        || archive.version     === undefined
+        || archive.dumpversion === undefined
+        || archive.dumpmachine === undefined
+        || archive.targets     === undefined
+        || archive.archiveLog  === undefined
+        || archive.archiveFile === undefined)
+        throw new Error('invalid archive data');
 
-    //FIXME : need to check archive data type.
-    if ( archive.platform    === undefined
-      || archive.arch        === undefined
-      || archive.compiler    === undefined
-      || archive.version     === undefined
-      || archive.dumpversion === undefined
-      || archive.dumpmachine === undefined
-      || archive.targets     === undefined
-      || archive.archiveLog  === undefined
-      || archive.archiveFile === undefined)
-     return res.status(400).send('invalid archive data');
+      //extract version(x.y.z) from '--version' string
+      archive.compilerversion = environment.getCompilerVersionFromString(archive.compiler, archive.version);
+      if (archive.compilerversion === null)
+        throw new Error('unable to extract the version');
 
-    //generate archiveId in server side
-    archive.archiveId = environment.generatorArchiveId(archive);
+      //generate archiveId in server side
+      archive.archiveId = environment.generatorArchiveId(archive);
 
-    if (am.archiveExists(archive.archiveId))
-      return res.status(400).send('archive already exists.');
+      if (am.archiveExists(archive.archiveId))
+        throw new Error('archive already exists.');
 
+    } catch(e) {
+      debug(e.message);
+      debug(req.body);
+      debug(req.file);
+
+      return res.status(400).send(e.message);
+    }
+
+    // add new archive
     am.addArchive(archive, req.file, function(err){
       if(err) {
         debug(err);
         return res.status(400).send('unable to add.');
       }
 
+      debug('an archive is uploaded');
+      debug(am.getArchiveInfo(archive.archiveId));
+
       io.emit('schedulerArchives', am.getArchiveList());
       return res.json(am.getArchiveInfo(archive.archiveId));
     });
-  })
-
+  });
 
   return router;
 };
