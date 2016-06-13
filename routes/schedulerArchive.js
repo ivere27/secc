@@ -117,7 +117,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
         throw new Error('invalid archive data');
 
       //extract version(x.y.z) from '--version' string
-      archive.compilerversion = environment.getCompilerVersionFromString(archive.compiler, archive.version);
+      archive.compilerVersion = environment.getCompilerVersionFromString(archive.compiler, archive.version);
       if (archive.compilerversion === null)
         throw new Error('unable to extract the version');
 
