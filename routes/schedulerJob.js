@@ -2,7 +2,9 @@
 
 var debug = require('debug')('secc:routes:schedulerJob');
 var path = require('path');
+
 var utils = require('../lib/utils');
+var environment = require('../lib/environment');
 
 module.exports = function(express, io, SECC, SCHEDULER) {
   var router = express.Router();
@@ -56,6 +58,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     var information = { platform: job.systemInformation.platform
                        ,arch : job.systemInformation.arch
                        ,compiler : 'unknown'
+                       ,compilerVersion : null
                        ,version : job.compilerInformation.version
                        ,dumpversion : job.compilerInformation.dumpversion
                        ,dumpmachine : job.compilerInformation.dumpmachine};
@@ -72,10 +75,14 @@ module.exports = function(express, io, SECC, SCHEDULER) {
         information.compiler = 'gcc'
     }
 
+    // extract compilerVersion from --version string
+    information.compilerVersion = environment.getCompilerVersionFromString(information.compiler, information.version);
+
     var archiveInfo = am.getArchiveInfo(am.getArchiveId(information));
     var crossArchiveIds = am.getArchiveIdsByTarget(information.dumpmachine);
 
-    if ( (!job.crossPrefered && archiveInfo === null)
+    if ( information.compilerVersion === null
+      || (!job.crossPrefered && archiveInfo === null)
       || (job.crossPrefered && archiveInfo === null && crossArchiveIds.length === 0)) {
       debug('archive not exists. build local.')
       debug(information);
