@@ -157,7 +157,8 @@ if (cluster.isWorker) {
 
   app.use(compression());
   app.use(bodyParser.json()); // for parsing application/json
-  app.use(bodyParser.text()); // for parsing text/plain
+  // do not parse text/plain. we will use the req as stream in CompileStream pipe
+  //app.use(bodyParser.text()); // for parsing text/plain
   app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
   app.use(upload); // for parsing multipart/form-data
 
@@ -181,6 +182,7 @@ if (cluster.isWorker) {
     worker : cluster.worker,
     redisClient : redisClient,
     Archives : {
+      localArchives : null,
       schedulerArchives : [],
 
       localPrepArchiveId : {},
@@ -222,6 +224,8 @@ if (cluster.isWorker) {
       DAEMON.daemonId = msg.data.daemonId;
     } else if (msg.event === 'schedulerArchives') {
       DAEMON.Archives.schedulerArchives = msg.data;
+    } else if (msg.event === 'localArchives') {
+      DAEMON.Archives.localArchives = msg.data;
     } else {
       debug('unknown msg!');
       debug(msg);

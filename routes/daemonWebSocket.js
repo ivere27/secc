@@ -48,6 +48,10 @@ module.exports = function(socket, SECC, DAEMON) {
     debug(data) ;
   });
 
+  socket.on('localArchives', function(data){
+    DAEMON.broadcast('localArchives', data);
+  });
+
   socket.on('schedulerArchives', function(data){
     DAEMON.broadcast('schedulerArchives', data);
   });

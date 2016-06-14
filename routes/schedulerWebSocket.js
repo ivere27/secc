@@ -2,6 +2,7 @@
 
 var debug = require('debug')('secc:routes:schedulerWebSocket');
 
+var environment = require('../lib/environment.js');
 var path = require('path');
 
 module.exports = function(express, io, SECC, SCHEDULER) {
@@ -48,14 +49,51 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     });
 
     socket.on('daemonInformation', function(metaData){
+      var archive = {};
+      if (metaData.gcc) {
+        metaData.gcc.compilerVersion = environment.getCompilerVersionFromString('gcc', metaData.gcc.version);
+        if (metaData.gcc.compilerVersion) {
+          var gccArchive = {
+             platform         : metaData.platform
+            ,arch             : metaData.arch
+            ,compiler         : 'gcc'
+            ,compilerVersion  : metaData.gcc.compilerVersion
+            ,version          : metaData.gcc.version
+            ,dumpversion      : metaData.gcc.dumpversion
+            ,dumpmachine      : metaData.gcc.dumpmachine};
+
+          gccArchive.archiveId = environment.generatorArchiveId(gccArchive);
+          archive[gccArchive.archiveId] = gccArchive;
+        }
+      }
+
+      if (metaData.clang) {
+        metaData.clang.compilerVersion = environment.getCompilerVersionFromString('clang', metaData.clang.version);
+        if (metaData.clang.compilerVersion) {
+          var clangArchive = {
+             platform         : metaData.platform
+            ,arch             : metaData.arch
+            ,compiler         : 'clang'
+            ,compilerVersion  : metaData.clang.compilerVersion
+            ,version          : metaData.clang.version
+            ,dumpversion      : metaData.clang.dumpversion
+            ,dumpmachine      : metaData.clang.dumpmachine};
+
+          clangArchive.archiveId = environment.generatorArchiveId(clangArchive);
+          archive[clangArchive.archiveId] = clangArchive;
+        }
+      }
+
+      // send back, localArchives(already installed in a daemon)
+      socket.emit('localArchives', archive);
+
       dm.setDaemonSystemInformation(socket.id
         , { system  : { hostname : metaData.hostname
                       , port     : metaData.port
                       , platform : metaData.platform
                       , release  : metaData.release
                       , arch     : metaData.arch
-                      , gcc      : metaData.gcc
-                      , clang    : metaData.clang
+                      , archive  : archive
                       }
           , type    :'daemon'
           , maxJobs : metaData.numCPUs

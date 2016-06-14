@@ -114,13 +114,19 @@ module.exports = function(express, SECC, DAEMON) {
                      }).pipe(compilePipeStream);
   }
 
-  router.post('/native', function (req, res) {
-    compileWrapper(req, res);
-  })
-
   router.post('/:archiveId', function (req, res) {
     var jobId = req.headers['secc-jobid'] || null;
     var archiveId = req.params.archiveId;
+
+    if (Archives.localArchives.hasOwnProperty(archiveId)) {
+      var options = {
+        buildNative: true,
+        archiveId: archiveId,
+        archive : Archives.localArchives[archiveId]
+      };
+
+      return compileWrapper(req, res, options);
+    }
 
     var archive = utils.getArchiveInArray(Archives.schedulerArchives, archiveId);
 
@@ -153,15 +159,14 @@ module.exports = function(express, SECC, DAEMON) {
     }
 
     var options = {
-          buildNative: false,
-          archiveId: archive.archiveId,
-          buildRoot: path.join(SECC.runPath, 'preprocessed', archive.archiveId),
-          archive : archive
-        };
+      buildNative: false,
+      archiveId: archive.archiveId,
+      buildRoot: path.join(SECC.runPath, 'preprocessed', archive.archiveId),
+      archive : archive
+    };
 
     compileWrapper(req, res, options);
-
-  })
+  });
 
   return router;
 };
