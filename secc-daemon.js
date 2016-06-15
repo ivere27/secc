@@ -5,7 +5,6 @@ var debug = require('debug')('secc:'+process.pid+':daemon');
 var utils = require('./lib/utils.js');
 
 var cluster = require('cluster');
-var crypto = require('crypto');
 var fs = require('fs');
 var os = require('os');
 var path = require('path');
@@ -162,8 +161,6 @@ if (cluster.isWorker) {
   app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
   app.use(upload); // for parsing multipart/form-data
 
-  var compile = require('./lib/compile.js');
-  var environment = require('./lib/environment.js');
   var utils = require('./lib/utils.js');
   app.use(require('morgan')('combined'));
 
