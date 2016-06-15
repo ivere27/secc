@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
+var assert = require('assert');
 var http = require('http');
 var path = require('path');
 var url = require('url');
@@ -17,10 +18,10 @@ var command = argv.shift();
 var option1 = argv.shift();
 var option2 = argv.shift();
 
-function howto() {
+function howto () {
   console.log('SECC - %s', SECC.version);
-  console.log('Managing Scheduler\'s archives. - a simple rest commandline tool\n')
-  console.log('Options:')
+  console.log("Managing Scheduler's archives. - a simple rest commandline tool\n");
+  console.log('Options:');
   console.log('%s %s http://SCHEDULER:PORT list', nodePath, file);
   console.log('%s %s http://SCHEDULER:PORT get <ARCHIVE_ID>', nodePath, file);
   console.log('%s %s http://SCHEDULER:PORT delete <ARCHIVE_ID>', nodePath, file);
@@ -34,26 +35,26 @@ function howto() {
   process.exit(0);
 }
 
-function send(method, uri) {
+function send (method, uri) {
   var urlObject = url.parse(uri);
   var options = {
-    hostname : urlObject.hostname,
-    port : urlObject.port,
-    path : urlObject.path,
-    method : method
+    hostname: urlObject.hostname,
+    port: urlObject.port,
+    path: urlObject.path,
+    method: method
   };
 
   var req = http.request(options);
-  req.on('error', function(err){return console.error(err);});
-  req.setTimeout(5*1000, function(){
+  req.on('error', function (err) { return console.error(err); });
+  req.setTimeout(5 * 1000, function () {
     this.abort();
     return console.error(new Error('Timeout in request ' + urlObject.path));
   });
   req.on('response', function (res) {
     var data = '';
-    res.on('data', function(chunk){data += chunk;});
-    res.on('end', function(){
-      if(res.statusCode !== 200) {
+    res.on('data', function (chunk) { data += chunk; });
+    res.on('end', function () {
+      if (res.statusCode !== 200) {
         console.error(data);
         return console.error(new Error('Error raised in ' + urlObject.path));
       }
@@ -61,7 +62,7 @@ function send(method, uri) {
       if (res.headers['content-type'].indexOf('application/json') !== -1) {
         try {
           data = JSON.parse(data);
-        } catch(e) {
+        } catch (e) {
           console.error(e);
           console.error(data);
           return;
@@ -69,11 +70,11 @@ function send(method, uri) {
       }
 
       return console.log((typeof data === 'object')
-                          ? JSON.stringify(data, null, 2)
-                          : data);
+        ? JSON.stringify(data, null, 2)
+        : data);
     });
   });
-  //req.write();
+  // req.write()
   req.end();
 }
 
@@ -92,7 +93,9 @@ if (command === 'list') {
 } else if ((command === 'removeTarget') && option1 && option2) {
   method = 'DELETE';
   uri += option1 + '/target/' + option2;
-} else
-  return howto();
+} else {
+  howto();
+  assert(false, 'should not reach here');
+}
 
 send(method, uri);

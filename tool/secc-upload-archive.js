@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-var fs = require("fs");
+var fs = require('fs');
 var http = require('http');
 var url = require('url');
 var path = require('path');
@@ -23,10 +23,10 @@ var clangppPath = null;
 var archiveToolPath = null;
 var schedulerUrl = null;
 
-function howto() {
+function howto () {
   console.log('SECC - %s', SECC.version);
-  console.log('Upload a compiler archive to Scheduler server.\n')
-  console.log('Options:')
+  console.log('Upload a compiler archive to Scheduler server.\n');
+  console.log('Options:');
   console.log('%s %s --gcc /path/to/gcc /path/to/g++ archivetool.js http://SCHEDULER:PORT', nodePath, command);
   console.log('%s %s --clang /path/to/clang /path/to/clang++ archivetool.js http://SCHEDULER:PORT', nodePath, command);
   console.log('\n');
@@ -61,7 +61,7 @@ if (argv.indexOf('--gcc') !== -1) {
 var archive = {};
 var results = [];
 
-function final() {
+function final () {
   var os = require('os');
   archive.platform = os.platform();
   archive.arch = os.arch();
@@ -86,23 +86,23 @@ function final() {
 
   var urlObject = url.parse(schedulerUrl + '/archive');
   var options = {
-    hostname : urlObject.hostname,
-    port : urlObject.port,
-    path : urlObject.path,
-    method : 'POST',
-    headers : form.getHeaders()
+    hostname: urlObject.hostname,
+    port: urlObject.port,
+    path: urlObject.path,
+    method: 'POST',
+    headers: form.getHeaders()
   };
 
   var req = http.request(options);
-  req.on('error', function(err) {return console.error(err);})
-  req.setTimeout(60*1000, function(){
+  req.on('error', function (err) { return console.error(err); });
+  req.setTimeout(60 * 1000, function () {
     this.abort();
     return console.error(new Error('Timeout in uploading the archive'));
   });
   req.on('response', function (res) {
     var data = '';
-    res.on('data', function(chunk){data += chunk;});
-    res.on('end', function(){
+    res.on('data', function (chunk) { data += chunk; });
+    res.on('end', function () {
       if (res.statusCode !== 200) {
         console.error(data);
         return console.error(new Error('Error raised in uploading the archive'));
@@ -120,54 +120,53 @@ function final() {
   form.pipe(req);
 }
 
-function callChildProcess(command, cb) {
-  var exec = require('child_process').exec,
-      child;
+function callChildProcess (command, cb) {
+  var exec = require('child_process').exec;
 
-  child = exec(command,cb);
+  exec(command, cb);
 }
 
-function async(func, callback) {
-  process.nextTick(function(){
-    func(callback)
+function async (func, callback) {
+  process.nextTick(function () {
+    func(callback);
   });
 }
 
-//items to call each.
-var items = [function(callback){
-  callChildProcess(compilerPath + ' --version', function(error, stdout, stderr){
+// items to call each.
+var items = [function (callback) {
+  callChildProcess(compilerPath + ' --version', function (error, stdout, stderr) {
     if (error) throw error;
     callback(stdout);
   });
-}, function(callback){
-  callChildProcess(compilerPath + ' -dumpversion', function(error, stdout, stderr){
+}, function (callback) {
+  callChildProcess(compilerPath + ' -dumpversion', function (error, stdout, stderr) {
     if (error) throw error;
     callback(stdout);
   });
-}, function(callback){
-  callChildProcess(compilerPath + ' -dumpmachine', function(error, stdout, stderr){
+}, function (callback) {
+  callChildProcess(compilerPath + ' -dumpmachine', function (error, stdout, stderr) {
     if (error) throw error;
     callback(stdout);
   });
-}, function(callback){
+}, function (callback) {
   var command = null;
-  if (compiler === 'gcc')
+  if (compiler === 'gcc') {
     command = archiveToolPath + ' --gcc ' + gccPath + ' ' + gppPath;
-  else if (compiler === 'clang')
+  } else if (compiler === 'clang') {
     command = archiveToolPath + ' --clang ' + clangPath + ' ' + clangppPath;
+  }
 
-  callChildProcess(command , function(error, stdout, stderr){
+  callChildProcess(command, function (error, stdout, stderr) {
     if (error) throw error;
     console.log(stdout);
     callback(stdout);
   });
 }];
 
-
-//series async
-function series(item) {
-  if(item) {
-    async(item, function(result) {
+// series async
+function series (item) {
+  if (item) {
+    async(item, function (result) {
       results.push(result);
       return series(items.shift());
     });
