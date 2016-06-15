@@ -20,24 +20,13 @@ module.exports = function(express, SECC, DAEMON) {
   var Archives = DAEMON.Archives;
   var redisClient = DAEMON.redisClient;
 
-  var compileWrapper = function(req, res, options) {
+  var compileWrapper = function(req, res, archive, options) {
     var jobId = req.headers['secc-jobid'] || null;
     if (jobId) DAEMON.worker.emitToScheduler('compileBefore', { jobId: jobId });
 
     var options = options || {};
-    options.compiler = req.headers['secc-compiler'] || 'gcc';
-    options.driver = req.headers['secc-driver'] || 'gcc';
-
-    if (options.archive) {
-      if(options.archive.compiler === 'gcc' && options.compiler === 'c++')
-        options.compiler = 'g++';
-      else if(options.archive.compiler === 'gcc' && options.compiler === 'cc')
-        options.compiler = 'gcc';
-      else if(options.archive.compiler === 'clang' && options.compiler === 'c++')
-        options.compiler = 'clang++';
-      else if(options.archive.compiler === 'clang' && options.compiler === 'cc')
-        options.compiler = 'clang';
-    }
+    options.compiler = archive.compiler;
+    options.driver = req.headers['secc-driver'] || archive.compiler;
 
     try {
       options.argv = [];
@@ -303,7 +292,6 @@ module.exports = function(express, SECC, DAEMON) {
               buildNative: false,
               archiveId: archive.archiveId,
               buildRoot: path.join(SECC.runPath, 'pump', archiveId, clientIp, projectId),
-              archive : archive,
               sourceFile : sourceFile,
               workingDirectory : workingDirectory
             };
@@ -319,7 +307,7 @@ module.exports = function(express, SECC, DAEMON) {
             else
               return res.status(400).send(err);
           }
-          compileWrapper(req, res, options);
+          compileWrapper(req, res, archive, options);
         });
       });
     });
