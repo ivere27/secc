@@ -3,7 +3,7 @@
 var debug = require('debug')('secc:routes:schedulerOption');
 var utils = require('../lib/utils');
 
-module.exports = function(express, io, SECC, SCHEDULER) {
+module.exports = function (express, io, SECC, SCHEDULER) {
   var router = express.Router();
 
   var om = SCHEDULER.om;
@@ -14,9 +14,9 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     if (typeof json !== 'object'
       || !Array.isArray(json.argv)
       || json.driver === undefined
-      || json.cwd    === undefined
-      || json.mode   === undefined
-      ) {
+      || json.cwd === undefined
+      || json.mode === undefined
+    ) {
       return res.status(400).send('invalid options');
     }
     var data = om.analyzeArguments(json.argv, json.driver, json.cwd, json.mode);

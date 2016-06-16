@@ -4,7 +4,7 @@ var debug = require('debug')('secc:routes:schedulerArchive');
 var environment = require('../lib/environment.js');
 var path = require('path');
 
-module.exports = function(express, io, SECC, SCHEDULER) {
+module.exports = function (express, io, SECC, SCHEDULER) {
   var router = express.Router();
 
   var am = SCHEDULER.am;
@@ -38,7 +38,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     if (!am.archiveExists(archiveId))
       return res.status(400).send('archive not exists.');
 
-    am.addTarget(archiveId, target, function(err, archive){
+    am.addTarget(archiveId, target, function (err, archive) {
       if (err) {
         debug(err);
         return res.status(400).send('unable to add a target.');
@@ -55,7 +55,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     if (!am.archiveExists(archiveId))
       return res.status(400).send('archive not exists.');
 
-    am.removeTarget(archiveId, target, function(err, archive){
+    am.removeTarget(archiveId, target, function (err, archive) {
       if (err) {
         debug(err);
         return res.status(400).send('unable to remove a target.');
@@ -83,7 +83,7 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     if (!am.archiveExists(archiveId))
       return res.status(400).send('archive not exists.');
 
-    am.removeArchive(archiveId, function(err){
+    am.removeArchive(archiveId, function (err) {
       if (err) {
         debug(err);
         return res.status(400).send('unable to remove an archive.');
@@ -94,38 +94,36 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     });
   });
 
-
   router.post('/', function (req, res) {
     try {
       var archive = JSON.parse(req.body.archive);
     } catch(e) {
-      debug("req.body.archive is not a json string. not serializable.")
+      debug('req.body.archive is not a json string. not serializable.');
     }
 
     // check the input data.
     // FIXME : need to check archive data type.
     try {
-      if ( archive.platform    === undefined
-        || archive.arch        === undefined
-        || archive.compiler    === undefined
-        || archive.version     === undefined
+      if (archive.platform === undefined
+        || archive.arch === undefined
+        || archive.compiler === undefined
+        || archive.version === undefined
         || archive.dumpmachine === undefined
-        || archive.targets     === undefined
-        || archive.archiveLog  === undefined
+        || archive.targets === undefined
+        || archive.archiveLog === undefined
         || archive.archiveFile === undefined)
         throw new Error('invalid archive data');
 
-      //extract version(x.y.z) from '--version' string
+      // extract version(x.y.z) from '--version' string
       archive.compilerVersion = environment.getCompilerVersionFromString(archive.compiler, archive.version);
       if (archive.compilerversion === null)
         throw new Error('unable to extract the version');
 
-      //generate archiveId in server side
+      // generate archiveId in server side
       archive.archiveId = environment.generatorArchiveId(archive);
 
       if (am.archiveExists(archive.archiveId))
         throw new Error('archive already exists.');
-
     } catch(e) {
       debug(e.message);
       debug(req.body);
@@ -135,8 +133,8 @@ module.exports = function(express, io, SECC, SCHEDULER) {
     }
 
     // add new archive
-    am.addArchive(archive, req.file, function(err){
-      if(err) {
+    am.addArchive(archive, req.file, function (err) {
+      if (err) {
         debug(err);
         return res.status(400).send('unable to add.');
       }

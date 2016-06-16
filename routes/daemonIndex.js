@@ -1,11 +1,11 @@
 'use strict';
 
-var debug = require('debug')('secc:'+process.pid+':routes:daemonIndex');
+var debug = require('debug')('secc:' + process.pid + ':routes:daemonIndex');
 
-module.exports = function(express, SECC, DAEMON) {
+module.exports = function (express, SECC, DAEMON) {
   var router = express.Router();
 
-  router.get('/', function(req, res) {
+  router.get('/', function (req, res) {
     res.send('Hello World :) in Daemon.');
   });
 

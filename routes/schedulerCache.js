@@ -3,7 +3,7 @@
 var debug = require('debug')('secc:routes:schedulerCache');
 var path = require('path');
 
-module.exports = function(express, io, SECC, SCHEDULER) {
+module.exports = function (express, io, SECC, SCHEDULER) {
   var router = express.Router();
 
   var cm = SCHEDULER.cm;

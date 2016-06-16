@@ -3,7 +3,7 @@
 var debug = require('debug')('secc:routes:schedulerDaemon');
 var path = require('path');
 
-module.exports = function(express, io, SECC, SCHEDULER) {
+module.exports = function (express, io, SECC, SCHEDULER) {
   var router = express.Router();
 
   var dm = SCHEDULER.dm;

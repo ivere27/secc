@@ -1,6 +1,6 @@
 'use strict';
 
-var debug = require('debug')('secc:'+process.pid+':routes:daemonCompilePreprocessed');
+var debug = require('debug')('secc:' + process.pid + ':routes:daemonCompilePreprocessed');
 
 var path = require('path');
 var zlib = require('zlib');
@@ -11,16 +11,16 @@ var compile = require('../lib/compile.js');
 var environment = require('../lib/environment.js');
 var utils = require('../lib/utils.js');
 
-module.exports = function(express, SECC, DAEMON) {
+module.exports = function (express, SECC, DAEMON) {
   var router = express.Router();
 
   var Archives = DAEMON.Archives;
   var redisClient = DAEMON.redisClient;
 
   router.get('/:archiveId/:preprocessedHash/:argvHash', function (req, res) {
-    //cache
+    // cache
     if (!SECC.daemon.cache || !redisClient)
-      res.status(400).send('cache is not enabled.')
+      res.status(400).send('cache is not enabled.');
 
     var jobId = req.headers['secc-jobid'];
     var archiveId = req.params.archiveId;
@@ -31,40 +31,42 @@ module.exports = function(express, SECC, DAEMON) {
 
     debug('cache is requested. key : %s', redisKey);
 
-    redisClient.hgetall(redisKey, function(err, obj){
+    redisClient.hgetall(redisKey, function (err, obj) {
       if (err)
         res.status(400).send(err);
 
-      var metaData = { key : redisKey
-                 , jobId : jobId
-                 , archiveId : archiveId
-                 , preprocessedHash: preprocessedHash
-                 , argvHash : argvHash};
+      var metaData = {
+        key: redisKey,
+        jobId: jobId,
+        archiveId: archiveId,
+        preprocessedHash: preprocessedHash,
+        argvHash: argvHash
+      };
 
-      var responseError = function() {
-        debug('cache not exists.')
+      var responseError = function () {
+        debug('cache not exists.');
         DAEMON.worker.emitToScheduler('cacheNotExists', metaData);
 
         return res.status(400).send('object cache not exists');
-      }
+      };
 
-      //nothing or broken data(possibly deleted 'cos of allkeys-lru)
+      // nothing or broken data(possibly deleted 'cos of allkeys-lru)
       try {
         obj['info'] = JSON.parse(obj['info']);
         obj['info']['chunkCount'] |= 0;
-      } catch(err){
+      } catch(err) {
         return responseError();
       }
 
       var readable = new stream.Readable();
-      for (var i = 0; i<obj['info']['chunkCount'];i++) {
+      for (var i = 0; i < obj['info']['chunkCount'];i++) {
         if (obj['chunk' + i] === undefined)
           return responseError();
-        readable.push(obj['chunk' + i]);  //FIXME : need to make a stream.
+        readable.push(obj['chunk' + i]); // FIXME : need to make a stream.
       }
       readable.push(null);
 
-      //obj['stdout'] is not stored when it is omited.
+      // obj['stdout'] is not stored when it is omited.
       if (obj['info']['stdout'])
         res.setHeader('secc-stdout', querystring.escape(obj['info']['stdout']));
       if (obj['info']['stderr'])
@@ -72,15 +74,14 @@ module.exports = function(express, SECC, DAEMON) {
 
       debug('hit the cache.');
       debug(metaData);
-      res.attachment('cache.tar.gz'); //FIXME : better naming?
+      res.attachment('cache.tar.gz'); // FIXME : better naming?
       res.writeHead(200);
 
       readable.pipe(res);
 
       DAEMON.worker.emitToScheduler('cacheExists', metaData);
     });
-
-  })
+  });
 
   return router;
 };

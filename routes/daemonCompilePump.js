@@ -1,8 +1,8 @@
 'use strict';
 
-var debug = require('debug')('secc:'+process.pid+':routes:daemonCompilePump');
+var debug = require('debug')('secc:' + process.pid + ':routes:daemonCompilePump');
 
-var fs = require("fs");
+var fs = require('fs');
 var mkdirp = require('mkdirp');
 var path = require('path');
 var zlib = require('zlib');
@@ -14,13 +14,13 @@ var compile = require('../lib/compile.js');
 var environment = require('../lib/environment.js');
 var utils = require('../lib/utils.js');
 
-module.exports = function(express, SECC, DAEMON) {
+module.exports = function (express, SECC, DAEMON) {
   var router = express.Router();
 
   var Archives = DAEMON.Archives;
   var redisClient = DAEMON.redisClient;
 
-  var compileWrapper = function(req, res, archive, options) {
+  var compileWrapper = function (req, res, archive, options) {
     var jobId = req.headers['secc-jobid'] || null;
     if (jobId) DAEMON.worker.emitToScheduler('compileBefore', { jobId: jobId });
 
@@ -49,24 +49,24 @@ module.exports = function(express, SECC, DAEMON) {
     if (req.headers['secc-target'] !== undefined)
       options.target = req.headers['secc-target'];
 
-    //using stdin pipe. NOPE! it's pump mode.
+    // using stdin pipe. NOPE! it's pump mode.
     options.usingPipe = false;
 
-    //cache
+    // cache
     if (SECC.daemon.cache) {
-      debug('using redis cache.')
+      debug('using redis cache.');
       options.cache = true;
       options.redisClient = redisClient;
     }
 
     var compilePumpStream = new compile.CompileStream(options);
 
-    compilePumpStream.on('cacheStored', function(data){
+    compilePumpStream.on('cacheStored', function (data) {
       DAEMON.worker.emitToScheduler('cacheStored', data);
     });
 
-    compilePumpStream.on('finish', function(err, stdout, stderr, code, outArchive) {
-      //console.log('finish');
+    compilePumpStream.on('finish', function (err, stdout, stderr, code, outArchive) {
+      // console.log('finish')
       if (stdout) res.setHeader('secc-stdout', querystring.escape(stdout));
       if (stderr) res.setHeader('secc-stderr', querystring.escape(stderr));
       if (code || code == 0) res.setHeader('secc-code', code);
@@ -76,7 +76,7 @@ module.exports = function(express, SECC, DAEMON) {
         debug(stderr);
         debug(err);
 
-        if (jobId) DAEMON.worker.emitToScheduler('compileAfter', { jobId: jobId , error: err.message });
+        if (jobId) DAEMON.worker.emitToScheduler('compileAfter', { jobId: jobId,  error: err.message });
 
         return res.status(400).send(err.message);
       }
@@ -87,7 +87,7 @@ module.exports = function(express, SECC, DAEMON) {
 
       if (jobId) DAEMON.worker.emitToScheduler('compileAfter', { jobId: jobId });
     });
-  }
+  };
 
   router.post('/:archiveId/:projectId/filecheck', function (req, res) {
     debug('/:archiveId/:projectId/filecheck');
@@ -101,16 +101,16 @@ module.exports = function(express, SECC, DAEMON) {
     var files = req.body;
     var response = {};
 
-    debug('filecheck files...')
-    //debug(files);
+    debug('filecheck files...');
+    // debug(files)
 
     async.forEachOf(files, function (value, key, callback) {
-      fs.stat(archivePath + key, function(err,stats) {
-        //FIXME : if key is directory in server? rm?
-        if(err && err.code == 'ENOENT') { //file not exists
+      fs.stat(archivePath + key, function (err, stats) {
+        // FIXME : if key is directory in server? rm?
+        if (err && err.code == 'ENOENT') { // file not exists
           response[key] = false;
           return callback(null);
-        } else if(err) {  //unknown error.
+        } else if (err) { // unknown error.
           return callback(err);
         }
 
@@ -118,29 +118,28 @@ module.exports = function(express, SECC, DAEMON) {
         var hash = crypto.createHash('md5');
         hash.setEncoding('hex');
 
-        stream.on('error', function(err){
+        stream.on('error', function (err) {
           callback(err);
         });
-        stream.on('end', function() {
+        stream.on('end', function () {
           hash.end();
           response[key] = (value == hash.read());
           callback(null);
         });
         stream.pipe(hash);
       });
-
     }, function (err) {
       if (err) {
         debug(err.message);
         if (jobId) DAEMON.worker.emitToScheduler('compileLocal', { jobId: jobId });
-        return res.status(400).send('error!!')
+        return res.status(400).send('error!!');
       }
 
-      debug('send back to client what files exist...')
-      //debug(response);
+      debug('send back to client what files exist...');
+      // debug(response)
       return res.json(response);
     });
-  })
+  });
 
   router.post('/:archiveId/:projectId', function (req, res) {
     var jobId = req.headers['secc-jobid'] || null;
@@ -154,51 +153,51 @@ module.exports = function(express, SECC, DAEMON) {
     debug('COMPILE REQUEST');
     debug('/%s/%s/ from %s', archiveId, projectId, clientIp);
 
-    var pumpArchiveId = crypto.createHash('md5').update(archivePath).digest("hex");
+    var pumpArchiveId = crypto.createHash('md5').update(archivePath).digest('hex');
     var pumpArchive = {
-      pumpArchiveId : pumpArchiveId,
-      archive : archive,
-      archivePath : archivePath};
+      pumpArchiveId: pumpArchiveId,
+      archive: archive,
+    archivePath: archivePath};
 
-    var deleteAllUploadFiles = function(file, callback){
+    var deleteAllUploadFiles = function (file, callback) {
       if (jobId) DAEMON.worker.emitToScheduler('compileLocal', { jobId: jobId });
 
-      fs.unlink(file.path, function(err){
-        if(err && err.code !== 'ENOENT')
+      fs.unlink(file.path, function (err) {
+        if (err && err.code !== 'ENOENT')
           return callback(err);
         return callback(null);
       });
     };
 
-    //check exists in Archives.schedulerArchives
+    // check exists in Archives.schedulerArchives
     if (!utils.archiveExistsInArray(Archives.schedulerArchives, archiveId)) {
       debug('unknown archiveId. not exists in Archives.schedulerArchives.');
-      return deleteAllUploadFiles(req.file, function(err){
+      return deleteAllUploadFiles(req.file, function (err) {
         if (err)
           return res.status(400).send(err);
         return res.status(400).send('unknown archiveId.');
       });
     }
 
-    //check WIP in Archives.localPumpArchivesInProgress.
+    // check WIP in Archives.localPumpArchivesInProgress.
     if (utils.pumpArchiveExistsInArray(Archives.localPumpArchivesInProgress, pumpArchive.pumpArchiveId)) {
       debug('pumpArchiveId %s(archiveId %s) is working in progress.', pumpArchive.pumpArchiveId, archiveId);
-      return deleteAllUploadFiles(req.file, function(err){
+      return deleteAllUploadFiles(req.file, function (err) {
         if (err)
           return res.status(400).send(err);
         return res.status(400).send('pumpArchiveId is working in progress.');
       });
     }
 
-    //check in localPumpArchives(already installed.)
+    // check in localPumpArchives(already installed.)
     if (!utils.pumpArchiveExistsInArray(Archives.localPumpArchives, pumpArchive.pumpArchiveId)) {
       debug('pumpArchiveId %s(archiveId %s) is not installed. will be install.', pumpArchive.pumpArchiveId, archiveId);
       Archives.localPumpArchivesInProgress.push(pumpArchive);
-      DAEMON.worker.broadcast('addLocalPumpArchivesInProgress', {pumpArchive : pumpArchive });
+      DAEMON.worker.broadcast('addLocalPumpArchivesInProgress', {pumpArchive: pumpArchive });
 
-      process.nextTick(function(){
-        //download from scheduler. FIXME : make as a function. and loop.
-        var pumpArchiveToInstall = Archives.localPumpArchivesInProgress[Archives.localPumpArchivesInProgress.length-1];
+      process.nextTick(function () {
+        // download from scheduler. FIXME : make as a function. and loop.
+        var pumpArchiveToInstall = Archives.localPumpArchivesInProgress[Archives.localPumpArchivesInProgress.length - 1];
 
         var http = require('http');
         var options = {
@@ -208,46 +207,46 @@ module.exports = function(express, SECC, DAEMON) {
           method: 'GET'
         };
 
-        debug("download %s", options.path);
+        debug('download %s', options.path);
 
         var req = http.request(options);
-        req.on('error', function(err) {return debug(err);})
-        req.setTimeout(60000, function(){
-            //FIXME : report to the scheduler.
-            return debug(new Error('Timeout in downloading the archive file'));
+        req.on('error', function (err) {return debug(err);});
+        req.setTimeout(60000, function () {
+          // FIXME : report to the scheduler.
+          return debug(new Error('Timeout in downloading the archive file'));
         });
-        req.on('response', function(res) {
-          if(res.statusCode !== 200) {
+        req.on('response', function (res) {
+          if (res.statusCode !== 200) {
             this.abort();
-            //FIXME : report to the scheduler.
+            // FIXME : report to the scheduler.
             return debug(new Error('Timeout in downloading the archive file'));
           }
 
           var extract = require('tar').Extract({path: pumpArchiveToInstall.archivePath});
-          extract.on('error', function(err) {
+          extract.on('error', function (err) {
             debug(err);
             utils.removePumpArchiveInArray(Archives.localPumpArchivesInProgress, pumpArchiveToInstall.pumpArchiveId);
-            DAEMON.worker.broadcast('removeLocalPumpArchivesInProgress', {pumpArchive : pumpArchiveToInstall });
+            DAEMON.worker.broadcast('removeLocalPumpArchivesInProgress', {pumpArchive: pumpArchiveToInstall });
           });
-          extract.on('end',function(){
+          extract.on('end', function () {
             debug('download and extract done : %s', pumpArchiveToInstall.archivePath);
             mkdirp.sync(path.join(pumpArchiveToInstall.archivePath, 'tmp'));
 
             debug('copy chdir.sh to archivePath');
-            fs.createReadStream(path.join(SECC.toolPath,'chdir.sh'))
-              .pipe(fs.createWriteStream(path.join(pumpArchiveToInstall.archivePath,'chdir.sh')));
+            fs.createReadStream(path.join(SECC.toolPath, 'chdir.sh'))
+              .pipe(fs.createWriteStream(path.join(pumpArchiveToInstall.archivePath, 'chdir.sh')));
 
             utils.removePumpArchiveInArray(Archives.localPumpArchivesInProgress, pumpArchiveToInstall.pumpArchiveId);
-            DAEMON.worker.broadcast('removeLocalPumpArchivesInProgress', {pumpArchive : pumpArchiveToInstall });
+            DAEMON.worker.broadcast('removeLocalPumpArchivesInProgress', {pumpArchive: pumpArchiveToInstall });
             Archives.localPumpArchives.push(pumpArchiveToInstall);
-            DAEMON.worker.broadcast('addLocalPumpArchives', {pumpArchive : pumpArchiveToInstall });
+            DAEMON.worker.broadcast('addLocalPumpArchives', {pumpArchive: pumpArchiveToInstall });
           });
           res.pipe(zlib.createGunzip()).pipe(extract);
         });
         req.end();
       });
 
-      return deleteAllUploadFiles(req.file, function(err){
+      return deleteAllUploadFiles(req.file, function (err) {
         if (err)
           return res.status(400).send(err);
         return res.status(400).send('archiveId is not installed.');
@@ -257,7 +256,7 @@ module.exports = function(express, SECC, DAEMON) {
     debug(req.body);
     var sourceFile = req.body.sourceFile;
 
-    debug("### sourceFile")
+    debug('### sourceFile');
     debug(sourceFile);
 
     var source = req.file;
@@ -266,41 +265,41 @@ module.exports = function(express, SECC, DAEMON) {
     var compileObject = compileSource + '.o';
     var workingDirectory = req.body.workingDirectory;
 
-    //file extract..
+    // file extract..
     debug(source);
 
     var tar = require('tar');
     var extract = tar.Extract({path: archivePath});
-    extract.on('error', function(err) {
-      return deleteAllUploadFiles(req.file, function(err){
+    extract.on('error', function (err) {
+      return deleteAllUploadFiles(req.file, function (err) {
         if (err)
           return res.status(400).send(err);
         return res.status(400).send('error raised in extracting source.');
-      })
+      });
     });
 
-    extract.once('end', function(){   //FIXME : it seems there is a bug in tar. it emit 'end' two times.
+    extract.once('end', function () { // FIXME : it seems there is a bug in tar. it emit 'end' two times.
       debug('on extract end!!!!');
 
-      deleteAllUploadFiles(req.file, function(err){
+      deleteAllUploadFiles(req.file, function (err) {
         if (err)
           return res.status(400).send(err);
 
         debug('untar done. %s', source.filename);
 
         var options = {
-              buildNative: false,
-              archiveId: archive.archiveId,
-              buildRoot: path.join(SECC.runPath, 'pump', archiveId, clientIp, projectId),
-              sourceFile : sourceFile,
-              workingDirectory : workingDirectory
-            };
+          buildNative: false,
+          archiveId: archive.archiveId,
+          buildRoot: path.join(SECC.runPath, 'pump', archiveId, clientIp, projectId),
+          sourceFile: sourceFile,
+          workingDirectory: workingDirectory
+        };
 
-        //check workingDictory. prevent '../../'
+        // check workingDictory. prevent '../../'
         var cwd = path.join(options.buildRoot, path.normalize(path.join('/', options.workingDirectory)));
-        debug({cwd : cwd});
+        debug({cwd: cwd});
 
-        fs.stat(cwd, function(err, stats){
+        fs.stat(cwd, function (err, stats) {
           if (err) {
             if (err.code == 'ENOENT')
               mkdirp.sync(cwd);
@@ -312,16 +311,16 @@ module.exports = function(express, SECC, DAEMON) {
       });
     });
 
-    var gzipPack = fs.createReadStream(path.join(SECC.uploadPath, source.filename))
-    gzipPack.on('error', function(err){
-      return deleteAllUploadFiles(req.file, function(err){
+    var gzipPack = fs.createReadStream(path.join(SECC.uploadPath, source.filename));
+    gzipPack.on('error', function (err) {
+      return deleteAllUploadFiles(req.file, function (err) {
         if (err)
           return res.status(400).send(err);
         return res.status(400).send('error raised in extracting source.');
-      })
+      });
     });
     gzipPack.pipe(zlib.createGunzip()).pipe(extract);
-  })
+  });
 
   return router;
 };
