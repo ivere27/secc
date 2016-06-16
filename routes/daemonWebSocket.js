@@ -6,6 +6,7 @@ var os = require('os');
 var environment = require('../lib/environment.js');
 
 module.exports = function(socket, SECC, DAEMON) {
+  var redisClient = DAEMON.redisClient;
 
   socket.on('connect', function(){
     //console.log(socket);
