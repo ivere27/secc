@@ -59,7 +59,6 @@ module.exports = function(express, io, SECC, SCHEDULER) {
             ,compiler         : 'gcc'
             ,compilerVersion  : metaData.gcc.compilerVersion
             ,version          : metaData.gcc.version
-            ,dumpversion      : metaData.gcc.dumpversion
             ,dumpmachine      : metaData.gcc.dumpmachine};
 
           gccArchive.archiveId = environment.generatorArchiveId(gccArchive);
@@ -76,7 +75,6 @@ module.exports = function(express, io, SECC, SCHEDULER) {
             ,compiler         : 'clang'
             ,compilerVersion  : metaData.clang.compilerVersion
             ,version          : metaData.clang.version
-            ,dumpversion      : metaData.clang.dumpversion
             ,dumpmachine      : metaData.clang.dumpmachine};
 
           clangArchive.archiveId = environment.generatorArchiveId(clangArchive);

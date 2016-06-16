@@ -69,10 +69,9 @@ function final () {
   archive.compiler = compiler;
 
   archive.version = results[0];
-  archive.dumpversion = results[1].replace(/\n$/, '');
-  archive.dumpmachine = results[2].replace(/\n$/, '');
+  archive.dumpmachine = results[1].replace(/\n$/, '');
   archive.targets = [];
-  archive.archiveLog = results[3];
+  archive.archiveLog = results[2];
   archive.archiveFile = archive.archiveLog.split('creating').pop().trim();
 
   console.log('JSON\n', archive);
@@ -135,11 +134,6 @@ function async (func, callback) {
 // items to call each.
 var items = [function (callback) {
   callChildProcess(compilerPath + ' --version', function (error, stdout, stderr) {
-    if (error) throw error;
-    callback(stdout);
-  });
-}, function (callback) {
-  callChildProcess(compilerPath + ' -dumpversion', function (error, stdout, stderr) {
     if (error) throw error;
     callback(stdout);
   });

@@ -28,7 +28,6 @@ module.exports = function(express, io, SECC, SCHEDULER) {
       || !json.systemInformation.arch
       || !json.compilerInformation
       || !json.compilerInformation.version
-      || !json.compilerInformation.dumpversion
       || !json.compilerInformation.dumpmachine
       || !json.mode
       || !json.projectId
@@ -60,7 +59,6 @@ module.exports = function(express, io, SECC, SCHEDULER) {
                        ,compiler : 'unknown'
                        ,compilerVersion : null
                        ,version : job.compilerInformation.version
-                       ,dumpversion : job.compilerInformation.dumpversion
                        ,dumpmachine : job.compilerInformation.dumpmachine};
 
     if ( job.compilerInformation.version.indexOf('gcc') !== -1

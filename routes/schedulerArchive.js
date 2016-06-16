@@ -109,7 +109,6 @@ module.exports = function(express, io, SECC, SCHEDULER) {
         || archive.arch        === undefined
         || archive.compiler    === undefined
         || archive.version     === undefined
-        || archive.dumpversion === undefined
         || archive.dumpmachine === undefined
         || archive.targets     === undefined
         || archive.archiveLog  === undefined

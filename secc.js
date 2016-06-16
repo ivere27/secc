@@ -156,7 +156,6 @@ require('async').waterfall([
   function(callback) {
     var http = require("http");
     var formData = {
-      compiler : job.compiler,
       driver : job.driver,
       cwd : process.cwd(),
       mode : job.mode,
@@ -218,7 +217,6 @@ require('async').waterfall([
       job.compilerInformation = compilerInformation;
       debug('compiler information - %s... %s %s'
         , compilerInformation.version.substr(0,30)
-        , compilerInformation.dumpversion
         , compilerInformation.dumpmachine);
 
       callback(null);
