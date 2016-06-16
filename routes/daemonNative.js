@@ -11,22 +11,12 @@ module.exports = function (express, SECC, DAEMON) {
   var redisClient = DAEMON.redisClient;
 
   router.get('/system', function (req, res) {
-    environment.getGccClangCompilerInformation(function (err, results) {
-      if (err)
-        return res.status(400).send();
+    var systemInformation = environment.getSystemInformation();
 
-      var systemInformation = environment.getSystemInformation();
+    systemInformation.archive = DAEMON.Archives.localArchives;
+    systemInformation.daemonId = DAEMON.daemonId;
 
-      if (results.gcc)
-        systemInformation.gcc = results.gcc;
-
-      if (results.clang)
-        systemInformation.clang = results.clang;
-
-      systemInformation.daemonId = DAEMON.daemonId;
-
-      res.send(systemInformation);
-    });
+    res.send(systemInformation);
   });
 
   return router;
