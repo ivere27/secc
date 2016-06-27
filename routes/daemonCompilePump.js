@@ -11,7 +11,6 @@ var async = require('async');
 var crypto = require('crypto');
 
 var compile = require('../lib/compile.js');
-var environment = require('../lib/environment.js');
 var utils = require('../lib/utils.js');
 
 module.exports = function (express, SECC, DAEMON) {
@@ -32,8 +31,6 @@ module.exports = function (express, SECC, DAEMON) {
       options.argv = [];
       options.argv = JSON.parse(req.headers['secc-argv']);
     } catch(e) {}
-
-    var output;
 
     if (req.headers['secc-language'] !== undefined)
       options.language = req.headers['secc-language'];
@@ -260,9 +257,6 @@ module.exports = function (express, SECC, DAEMON) {
     debug(sourceFile);
 
     var source = req.file;
-
-    var compileSource = req.body.sourceFile;
-    var compileObject = compileSource + '.o';
     var workingDirectory = req.body.workingDirectory;
 
     // file extract..

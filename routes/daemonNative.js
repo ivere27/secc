@@ -7,9 +7,6 @@ var environment = require('../lib/environment.js');
 module.exports = function (express, SECC, DAEMON) {
   var router = express.Router();
 
-  var Archives = DAEMON.Archives;
-  var redisClient = DAEMON.redisClient;
-
   router.get('/system', function (req, res) {
     var systemInformation = environment.getSystemInformation();
 

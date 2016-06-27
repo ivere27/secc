@@ -2,19 +2,14 @@
 
 var debug = require('debug')('secc:' + process.pid + ':routes:daemonCompilePreprocessed');
 
-var path = require('path');
-var zlib = require('zlib');
 var querystring = require('querystring');
 var stream = require('stream');
 
-var compile = require('../lib/compile.js');
-var environment = require('../lib/environment.js');
 var utils = require('../lib/utils.js');
 
 module.exports = function (express, SECC, DAEMON) {
   var router = express.Router();
 
-  var Archives = DAEMON.Archives;
   var redisClient = DAEMON.redisClient;
 
   router.get('/:archiveId/:preprocessedHash/:argvHash', function (req, res) {

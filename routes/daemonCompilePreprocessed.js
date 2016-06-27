@@ -8,7 +8,6 @@ var stream = require('stream');
 var zlib = require('zlib');
 
 var compile = require('../lib/compile.js');
-var environment = require('../lib/environment.js');
 var utils = require('../lib/utils.js');
 
 module.exports = function (express, SECC, DAEMON) {

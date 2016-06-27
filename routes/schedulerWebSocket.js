@@ -3,14 +3,12 @@
 var debug = require('debug')('secc:routes:schedulerWebSocket');
 
 var environment = require('../lib/environment.js');
-var path = require('path');
 
 module.exports = function (express, io, SECC, SCHEDULER) {
   var am = SCHEDULER.am;
   var cm = SCHEDULER.cm;
   var dm = SCHEDULER.dm;
   var jm = SCHEDULER.jm;
-  var om = SCHEDULER.om;
 
   // sockets.
   io.on('connection', function (socket) {
