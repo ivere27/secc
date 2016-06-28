@@ -23,7 +23,7 @@ var clangppPath = null;
 var archiveToolPath = null;
 var schedulerUrl = null;
 
-function howto () {
+function howto() {
   console.log('SECC - %s', SECC.version);
   console.log('Upload a compiler archive to Scheduler server.\n');
   console.log('Options:');
@@ -61,7 +61,7 @@ if (argv.indexOf('--gcc') !== -1) {
 var archive = {};
 var results = [];
 
-function final () {
+function final() {
   var os = require('os');
   archive.platform = os.platform();
   archive.arch = os.arch();
@@ -93,15 +93,15 @@ function final () {
   };
 
   var req = http.request(options);
-  req.on('error', function (err) { return console.error(err); });
-  req.setTimeout(60 * 1000, function () {
+  req.on('error', function(err) { return console.error(err); });
+  req.setTimeout(60 * 1000, function() {
     this.abort();
     return console.error(new Error('Timeout in uploading the archive'));
   });
-  req.on('response', function (res) {
+  req.on('response', function(res) {
     var data = '';
-    res.on('data', function (chunk) { data += chunk; });
-    res.on('end', function () {
+    res.on('data', function(chunk) { data += chunk; });
+    res.on('end', function() {
       if (res.statusCode !== 200) {
         console.error(data);
         return console.error(new Error('Error raised in uploading the archive'));
@@ -119,30 +119,30 @@ function final () {
   form.pipe(req);
 }
 
-function callChildProcess (command, cb) {
+function callChildProcess(command, cb) {
   var exec = require('child_process').exec;
 
   exec(command, cb);
 }
 
-function async (func, callback) {
-  process.nextTick(function () {
+function async(func, callback) {
+  process.nextTick(function() {
     func(callback);
   });
 }
 
 // items to call each.
-var items = [function (callback) {
-  callChildProcess(compilerPath + ' --version', function (error, stdout, stderr) {
+var items = [function(callback) {
+  callChildProcess(compilerPath + ' --version', function(error, stdout, stderr) {
     if (error) throw error;
     callback(stdout);
   });
-}, function (callback) {
-  callChildProcess(compilerPath + ' -dumpmachine', function (error, stdout, stderr) {
+}, function(callback) {
+  callChildProcess(compilerPath + ' -dumpmachine', function(error, stdout, stderr) {
     if (error) throw error;
     callback(stdout);
   });
-}, function (callback) {
+}, function(callback) {
   var command = null;
   if (compiler === 'gcc') {
     command = archiveToolPath + ' --gcc ' + gccPath + ' ' + gppPath;
@@ -150,7 +150,7 @@ var items = [function (callback) {
     command = archiveToolPath + ' --clang ' + clangPath + ' ' + clangppPath;
   }
 
-  callChildProcess(command, function (error, stdout, stderr) {
+  callChildProcess(command, function(error, stdout, stderr) {
     if (error) throw error;
     console.log(stdout);
     callback(stdout);
@@ -158,9 +158,9 @@ var items = [function (callback) {
 }];
 
 // series async
-function series (item) {
+function series(item) {
   if (item) {
-    async(item, function (result) {
+    async(item, function(result) {
       results.push(result);
       return series(items.shift());
     });

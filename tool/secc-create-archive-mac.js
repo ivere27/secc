@@ -33,7 +33,7 @@ var cppRealPath = null;
    $ brew install llvm --with-clang --with-clang-extra-tools --with-libcxx
    $ brew link llvm --force
 */
-function howto () {
+function howto() {
   console.log('usage: %s --clang <clang_path> <clang++_path>', command);
   process.exit(0);
 }
@@ -44,7 +44,7 @@ if (argv.indexOf('--clang') !== -1) {
   howto();
 }
 
-function callChildProcess (command, options, cb) {
+function callChildProcess(command, options, cb) {
   var exec = require('child_process').exec;
 
   if (typeof cb !== 'function') {
@@ -55,21 +55,21 @@ function callChildProcess (command, options, cb) {
 }
 
 var debug = require('debug')('secc:tool');
-function addFile (object, filePath, targetPath, cb, level) {
+function addFile(object, filePath, targetPath, cb, level) {
   if (object.hasOwnProperty(filePath)) return cb(null);
   level = (level === undefined) ? 0 : level;
   debug((' ' + level).slice(-2) + ' level. path is : ' + filePath);
 
   object[filePath] = {target: targetPath};
   var realpath = fs.realpathSync(filePath);
-  callChildProcess('file ' + realpath, function (err, stdout, stderr) {
+  callChildProcess('file ' + realpath, function(err, stdout, stderr) {
     if (err) return cb(err);
     object[filePath]['realpath'] = realpath;
     object[filePath]['type'] = null;
     object[filePath]['fileStdout'] = stdout;
     if (object[filePath]['fileStdout'].indexOf('Mach-O') !== -1) {
       object[filePath]['type'] = 'Mach-O';
-      callChildProcess('otool -L ' + realpath, function (err, stdout, stderr) {
+      callChildProcess('otool -L ' + realpath, function(err, stdout, stderr) {
         if (err) return cb(err);
 
         object[filePath]['otoolStdout'] = stdout;
@@ -89,9 +89,9 @@ function addFile (object, filePath, targetPath, cb, level) {
         }
 
         // recursive dependencies
-        async.eachSeries(dependencies, function (dependencyPath, callback) {
+        async.eachSeries(dependencies, function(dependencyPath, callback) {
           addFile(object, dependencyPath, dependencyPath, callback, level + 1);
-        }, function (err) {
+        }, function(err) {
           if (err) return cb(err);
           return cb(null);
         });
@@ -105,23 +105,23 @@ function addFile (object, filePath, targetPath, cb, level) {
 console.log('SECC archive generator.');
 async.series([
   // findout where clang is
-  function (callback) {
-    callChildProcess(compilerPath + ' -print-prog-name=clang', function (err, stdout, stderr) {
+  function(callback) {
+    callChildProcess(compilerPath + ' -print-prog-name=clang', function(err, stdout, stderr) {
       if (err) return callback(err);
       ccRealPath = stdout.trim();
       addFile(addList, ccRealPath, '/usr/bin/clang', callback);
     });
   },
   // add cc1plus
-  function (callback) {
-    callChildProcess(compilerPath + ' -print-prog-name=clang++', function (err, stdout, stderr) {
+  function(callback) {
+    callChildProcess(compilerPath + ' -print-prog-name=clang++', function(err, stdout, stderr) {
       if (err) return callback(err);
       cppRealPath = stdout.trim();
       addFile(addList, cppRealPath, '/usr/bin/clang++', callback);
     });
   },
   // when clang and clang++ are same(mostly), just make a symbolic link.
-  function (callback) {
+  function(callback) {
     if (fs.realpathSync(ccRealPath) === fs.realpathSync(cppRealPath)) {
       addList[cppRealPath]['symbolic'] = true;
       addList[cppRealPath]['makeSymbolic'] = true;
@@ -130,7 +130,7 @@ async.series([
     callback(null);
   },
   // make up addList.
-  function (callback) {
+  function(callback) {
     // https://developer.apple.com/library/mac/documentation/Darwin/Reference/ManPages/man1/dyld.1.html
     var dependencies = [];
     dependencies.push('/usr/lib/dyld');
@@ -139,16 +139,16 @@ async.series([
     // dependencies.push('/bin/ls'); //chroot test purpose.
 
     // additional dependencies
-    async.eachSeries(dependencies, function (dependencyPath, cb) {
+    async.eachSeries(dependencies, function(dependencyPath, cb) {
       addFile(addList, dependencyPath, dependencyPath, cb);
-    }, function (err) {
+    }, function(err) {
       if (err) return callback(err);
       return callback(null);
     });
   },
 
   // create a temp directory.
-  function (callback) {
+  function(callback) {
     tempDirectory = path.join(os.tmpdir(), 'SECC_' + crypto.randomBytes(10).toString('hex'));
     mkdirp.sync(tempDirectory, '0775');
 
@@ -156,8 +156,8 @@ async.series([
     callback(null);
   },
   // copy add files to the temp directory
-  function (callback) {
-    async.eachSeries(Object.keys(addList), function (filePath, cb) {
+  function(callback) {
+    async.eachSeries(Object.keys(addList), function(filePath, cb) {
       mkdirp.sync(path.join(tempDirectory, path.dirname(addList[filePath]['target'])), '0775');
       var tempPath = path.join(tempDirectory, addList[filePath]['target']);
       addList[filePath]['tempPath'] = tempPath;
@@ -166,25 +166,25 @@ async.series([
       if (addList[filePath]['makeSymbolic']) {
         console.log('make link %s', filePath);
         var relativePath = path.relative(path.dirname(addList[cppRealPath]['tempPath']), addList[ccRealPath]['tempPath']);
-        callChildProcess('ln -s ' + relativePath + ' ' + tempPath, function (err, stdout, stderr) {
+        callChildProcess('ln -s ' + relativePath + ' ' + tempPath, function(err, stdout, stderr) {
           if (err) return cb(err);
           cb(null);
         });
       } else if (addList[filePath]['copySymbolic']) {
         console.log('copy link %s', filePath);
         var option = '-P';
-        callChildProcess('cp ' + filePath + ' ' + tempPath + ' ' + option, function (err, stdout, stderr) {
+        callChildProcess('cp ' + filePath + ' ' + tempPath + ' ' + option, function(err, stdout, stderr) {
           if (err) return cb(err);
           cb(null);
         });
       } else {
         console.log('copy %s', filePath);
-        callChildProcess('cp ' + filePath + ' ' + tempPath, function (err, stdout, stderr) {
+        callChildProcess('cp ' + filePath + ' ' + tempPath, function(err, stdout, stderr) {
           if (err) return cb(err);
           cb(null);
         });
       }
-    }, function (err) {
+    }, function(err) {
       if (err) return callback(err);
 
       callback(null);
@@ -211,8 +211,8 @@ async.series([
   //   })
   // },
   // hashing,
-  function (callback) {
-    async.eachSeries(Object.keys(addList), function (filePath, cb) {
+  function(callback) {
+    async.eachSeries(Object.keys(addList), function(filePath, cb) {
       if (addList[filePath]['symbolic']) { // skip on symbolic links.
         return cb(null);
       }
@@ -222,24 +222,24 @@ async.series([
       var hash = crypto.createHash('md5');
       hash.setEncoding('hex');
 
-      stream.on('error', function (err) {
+      stream.on('error', function(err) {
         cb(err);
       });
-      stream.on('end', function () {
+      stream.on('end', function() {
         hash.end();
         addList[filePath]['hash'] = hash.read();
         cb(null);
       });
       stream.pipe(hash);
     },
-      function (err) {
+      function(err) {
         if (err) return callback(err || new Error('hashing error.'));
 
         callback(null);
       });
   },
   // tar,
-  function (callback) {
+  function(callback) {
     var command = '';
 
     // get md5 sum by hashes(sorted).
@@ -247,7 +247,7 @@ async.series([
     keys.sort();
 
     var hash = crypto.createHash('md5');
-    keys.forEach(function (filePath) {
+    keys.forEach(function(filePath) {
       if (!addList[filePath]['symbolic']) {
         hash.update(addList[filePath]['hash']);
       }
@@ -261,20 +261,20 @@ async.series([
     command = 'tar -cvz --numeric-owner -f ' + path.join(cwd, contentsHash + '.tar.gz') + command;
 
     console.log('creating %s', contentsHash + '.tar.gz');
-    callChildProcess(command, {cwd: tempDirectory}, function (err, stdout, stderr) {
+    callChildProcess(command, {cwd: tempDirectory}, function(err, stdout, stderr) {
       if (err) return callback(err);
       callback(null);
     });
   },
   // finally rm -rf tempDirectory
-  function (callback) {
-    callChildProcess('rm -rf ' + tempDirectory, function (err, stdout, stderr) {
+  function(callback) {
+    callChildProcess('rm -rf ' + tempDirectory, function(err, stdout, stderr) {
       if (err) return callback(err);
       callback(null);
     });
   }
 ],
-  function (err, results) {
+  function(err, results) {
     if (err) {
       console.log('error');
       console.log(err);

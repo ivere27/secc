@@ -18,7 +18,7 @@ var command = argv.shift();
 var option1 = argv.shift();
 var option2 = argv.shift();
 
-function howto () {
+function howto() {
   console.log('SECC - %s', SECC.version);
   console.log("Managing Scheduler's archives. - a simple rest commandline tool\n");
   console.log('Options:');
@@ -35,7 +35,7 @@ function howto () {
   process.exit(0);
 }
 
-function send (method, uri) {
+function send(method, uri) {
   var urlObject = url.parse(uri);
   var options = {
     hostname: urlObject.hostname,
@@ -45,15 +45,15 @@ function send (method, uri) {
   };
 
   var req = http.request(options);
-  req.on('error', function (err) { return console.error(err); });
-  req.setTimeout(5 * 1000, function () {
+  req.on('error', function(err) { return console.error(err); });
+  req.setTimeout(5 * 1000, function() {
     this.abort();
     return console.error(new Error('Timeout in request ' + urlObject.path));
   });
-  req.on('response', function (res) {
+  req.on('response', function(res) {
     var data = '';
-    res.on('data', function (chunk) { data += chunk; });
-    res.on('end', function () {
+    res.on('data', function(chunk) { data += chunk; });
+    res.on('end', function() {
       if (res.statusCode !== 200) {
         console.error(data);
         return console.error(new Error('Error raised in ' + urlObject.path));
