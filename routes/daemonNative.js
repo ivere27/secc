@@ -4,10 +4,10 @@ var debug = require('debug')('secc:' + process.pid + ':routes:daemonNative');
 
 var environment = require('../lib/environment.js');
 
-module.exports = function (express, SECC, DAEMON) {
+module.exports = function(express, SECC, DAEMON) {
   var router = express.Router();
 
-  router.get('/system', function (req, res) {
+  router.get('/system', function(req, res) {
     var systemInformation = environment.getSystemInformation();
 
     systemInformation.archive = DAEMON.Archives.localArchives;

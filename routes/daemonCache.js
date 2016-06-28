@@ -7,12 +7,12 @@ var stream = require('stream');
 
 var utils = require('../lib/utils.js');
 
-module.exports = function (express, SECC, DAEMON) {
+module.exports = function(express, SECC, DAEMON) {
   var router = express.Router();
 
   var redisClient = DAEMON.redisClient;
 
-  router.get('/:archiveId/:preprocessedHash/:argvHash', function (req, res) {
+  router.get('/:archiveId/:preprocessedHash/:argvHash', function(req, res) {
     // cache
     if (!SECC.daemon.cache || !redisClient)
       res.status(400).send('cache is not enabled.');
@@ -26,7 +26,7 @@ module.exports = function (express, SECC, DAEMON) {
 
     debug('cache is requested. key : %s', redisKey);
 
-    redisClient.hgetall(redisKey, function (err, obj) {
+    redisClient.hgetall(redisKey, function(err, obj) {
       if (err)
         res.status(400).send(err);
 
@@ -38,7 +38,7 @@ module.exports = function (express, SECC, DAEMON) {
         argvHash: argvHash
       };
 
-      var responseError = function () {
+      var responseError = function() {
         debug('cache not exists.');
         DAEMON.worker.emitToScheduler('cacheNotExists', metaData);
 
@@ -49,7 +49,7 @@ module.exports = function (express, SECC, DAEMON) {
       try {
         obj['info'] = JSON.parse(obj['info']);
         obj['info']['chunkCount'] |= 0;
-      } catch(err) {
+      } catch (err) {
         return responseError();
       }
 

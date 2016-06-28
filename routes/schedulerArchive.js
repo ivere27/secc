@@ -4,16 +4,16 @@ var debug = require('debug')('secc:routes:schedulerArchive');
 var environment = require('../lib/environment.js');
 var path = require('path');
 
-module.exports = function (express, io, SECC, SCHEDULER) {
+module.exports = function(express, io, SECC, SCHEDULER) {
   var router = express.Router();
 
   var am = SCHEDULER.am;
 
-  router.get('/', function (req, res) {
+  router.get('/', function(req, res) {
     res.json(am.getArchiveList());
   });
 
-  router.get('/:archiveId', function (req, res) {
+  router.get('/:archiveId', function(req, res) {
     var archiveId = req.params.archiveId;
 
     if (!am.archiveExists(archiveId))
@@ -22,7 +22,7 @@ module.exports = function (express, io, SECC, SCHEDULER) {
     return res.json(am.getArchiveInfo(archiveId));
   });
 
-  router.get('/:archiveId/target', function (req, res) {
+  router.get('/:archiveId/target', function(req, res) {
     var archiveId = req.params.archiveId;
 
     if (!am.archiveExists(archiveId))
@@ -31,14 +31,14 @@ module.exports = function (express, io, SECC, SCHEDULER) {
     return res.json(am.getArchiveInfo(archiveId).targets);
   });
 
-  router.post('/:archiveId/target/:target', function (req, res) {
+  router.post('/:archiveId/target/:target', function(req, res) {
     var archiveId = req.params.archiveId;
     var target = req.params.target;
 
     if (!am.archiveExists(archiveId))
       return res.status(400).send('archive not exists.');
 
-    am.addTarget(archiveId, target, function (err, archive) {
+    am.addTarget(archiveId, target, function(err, archive) {
       if (err) {
         debug(err);
         return res.status(400).send('unable to add a target.');
@@ -48,14 +48,14 @@ module.exports = function (express, io, SECC, SCHEDULER) {
     });
   });
 
-  router.delete('/:archiveId/target/:target', function (req, res) {
+  router.delete('/:archiveId/target/:target', function(req, res) {
     var archiveId = req.params.archiveId;
     var target = req.params.target;
 
     if (!am.archiveExists(archiveId))
       return res.status(400).send('archive not exists.');
 
-    am.removeTarget(archiveId, target, function (err, archive) {
+    am.removeTarget(archiveId, target, function(err, archive) {
       if (err) {
         debug(err);
         return res.status(400).send('unable to remove a target.');
@@ -65,7 +65,7 @@ module.exports = function (express, io, SECC, SCHEDULER) {
     });
   });
 
-  router.get('/:archiveId/file/', function (req, res) {
+  router.get('/:archiveId/file/', function(req, res) {
     var archiveId = req.params.archiveId;
 
     if (!am.archiveExists(archiveId))
@@ -77,13 +77,13 @@ module.exports = function (express, io, SECC, SCHEDULER) {
     res.sendFile(path.join(SECC.archivePath, archive.archiveFile));
   });
 
-  router.delete('/:archiveId', function (req, res) {
+  router.delete('/:archiveId', function(req, res) {
     var archiveId = req.params.archiveId;
 
     if (!am.archiveExists(archiveId))
       return res.status(400).send('archive not exists.');
 
-    am.removeArchive(archiveId, function (err) {
+    am.removeArchive(archiveId, function(err) {
       if (err) {
         debug(err);
         return res.status(400).send('unable to remove an archive.');
@@ -94,10 +94,10 @@ module.exports = function (express, io, SECC, SCHEDULER) {
     });
   });
 
-  router.post('/', function (req, res) {
+  router.post('/', function(req, res) {
     try {
       var archive = JSON.parse(req.body.archive);
-    } catch(e) {
+    } catch (e) {
       debug('req.body.archive is not a json string. not serializable.');
     }
 
@@ -124,7 +124,7 @@ module.exports = function (express, io, SECC, SCHEDULER) {
 
       if (am.archiveExists(archive.archiveId))
         throw new Error('archive already exists.');
-    } catch(e) {
+    } catch (e) {
       debug(e.message);
       debug(req.body);
       debug(req.file);
@@ -133,7 +133,7 @@ module.exports = function (express, io, SECC, SCHEDULER) {
     }
 
     // add new archive
-    am.addArchive(archive, req.file, function (err) {
+    am.addArchive(archive, req.file, function(err) {
       if (err) {
         debug(err);
         return res.status(400).send('unable to add.');

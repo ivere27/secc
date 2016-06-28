@@ -2,16 +2,16 @@
 
 var debug = require('debug')('secc:routes:schedulerCache');
 
-module.exports = function (express, io, SECC, SCHEDULER) {
+module.exports = function(express, io, SECC, SCHEDULER) {
   var router = express.Router();
 
   var cm = SCHEDULER.cm;
 
-  router.get('/', function (req, res) {
+  router.get('/', function(req, res) {
     res.json(cm.cacheList());
   });
 
-  router.delete('/', function (req, res) {
+  router.delete('/', function(req, res) {
     cm.clearCache();
     io.emit('clearCache', {});
 

@@ -4,14 +4,14 @@ var debug = require('debug')('secc:routes:schedulerWebSocket');
 
 var environment = require('../lib/environment.js');
 
-module.exports = function (express, io, SECC, SCHEDULER) {
+module.exports = function(express, io, SECC, SCHEDULER) {
   var am = SCHEDULER.am;
   var cm = SCHEDULER.cm;
   var dm = SCHEDULER.dm;
   var jm = SCHEDULER.jm;
 
   // sockets.
-  io.on('connection', function (socket) {
+  io.on('connection', function(socket) {
     debug('io connect. id : %s, address : %s', socket.id, socket.handshake.address);
 
     var daemonAddress = socket.handshake.address;
@@ -28,12 +28,12 @@ module.exports = function (express, io, SECC, SCHEDULER) {
     socket.emit('schedulerArchives', am.getArchiveList());
     socket.emit('daemonList', dm.getDaemonList());
 
-    socket.on('connect', function () {
+    socket.on('connect', function() {
       debug('io connect.');
 
       socket.emit('event', { hello: 'world' });
     });
-    socket.on('disconnect', function () {
+    socket.on('disconnect', function() {
       debug('io disconnect. id : %s, address : %s', socket.id, socket.handshake.address);
 
       cm.removeDaemon(socket.id);
@@ -42,11 +42,11 @@ module.exports = function (express, io, SECC, SCHEDULER) {
 
       io.emit('daemonList', dm.getDaemonList());
     });
-    socket.on('event', function (metaData) {
+    socket.on('event', function(metaData) {
       debug(metaData);
     });
 
-    socket.on('daemonInformation', function (metaData) {
+    socket.on('daemonInformation', function(metaData) {
       var archive = {};
       if (metaData.gcc) {
         metaData.gcc.compilerVersion = environment.getCompilerVersionFromString('gcc', metaData.gcc.version);
@@ -109,14 +109,14 @@ module.exports = function (express, io, SECC, SCHEDULER) {
       debug(SCHEDULER.dm.getDaemonList());
     });
 
-    socket.on('daemonLoad', function (metaData) {
+    socket.on('daemonLoad', function(metaData) {
       dm.recalculateMaxJobs(socket.id, { loadavg: metaData.loadavg,
         totalmem: metaData.totalmem,
       freemem: metaData.freemem});
     });
 
     // JOBs
-    socket.on('compileBefore', function (metaData) {
+    socket.on('compileBefore', function(metaData) {
       debug(metaData);
       dm.increaseJobCount(socket.id);
 
@@ -126,7 +126,7 @@ module.exports = function (express, io, SECC, SCHEDULER) {
         workerId: metaData.workerId,
       timestamp: new Date()});
     });
-    socket.on('compileAfter', function (metaData) {
+    socket.on('compileAfter', function(metaData) {
       debug(metaData);
       dm.decreaseJobCount(socket.id);
 
@@ -141,7 +141,7 @@ module.exports = function (express, io, SECC, SCHEDULER) {
         timestamp: new Date()
       });
     });
-    socket.on('compileLocal', function (metaData) {
+    socket.on('compileLocal', function(metaData) {
       debug(metaData);
       if (metaData.jobId) {
         jm.removeJob(metaData.jobId);
@@ -154,11 +154,11 @@ module.exports = function (express, io, SECC, SCHEDULER) {
     });
 
     // cache
-    socket.on('cacheStored', function (metaData) {
+    socket.on('cacheStored', function(metaData) {
       cm.newCache(socket.id, metaData);
       debug(metaData);
     });
-    socket.on('cacheExists', function (metaData) {
+    socket.on('cacheExists', function(metaData) {
       cm.removeCache(socket.id, metaData);
 
       if (metaData.jobId) {
@@ -171,7 +171,7 @@ module.exports = function (express, io, SECC, SCHEDULER) {
       }
       debug(metaData);
     });
-    socket.on('cacheNotExists', function (metaData) {
+    socket.on('cacheNotExists', function(metaData) {
       cm.removeCache(socket.id, metaData);
 
       if (metaData.jobId) {

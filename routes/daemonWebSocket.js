@@ -5,14 +5,14 @@ var os = require('os');
 
 var environment = require('../lib/environment.js');
 
-module.exports = function (socket, SECC, DAEMON) {
+module.exports = function(socket, SECC, DAEMON) {
   var redisClient = DAEMON.redisClient;
 
-  socket.on('connect', function () {
+  socket.on('connect', function() {
     // console.log(socket)
     console.log('secc-scheduler %s:%s connected.', SECC.daemon.scheduler.address, SECC.daemon.scheduler.port);
 
-    environment.getGccClangCompilerInformation(function (err, results) {
+    environment.getGccClangCompilerInformation(function(err, results) {
       if (err)
         return console.err(err);
 
@@ -35,7 +35,7 @@ module.exports = function (socket, SECC, DAEMON) {
 
       socket.emit('daemonInformation', daemonInformation);
 
-      DAEMON.loadReportTimer = setInterval(function () {
+      DAEMON.loadReportTimer = setInterval(function() {
         socket.emit('daemonLoad', {
           loadavg: os.loadavg(),
           totalmem: os.totalmem(),
@@ -47,28 +47,28 @@ module.exports = function (socket, SECC, DAEMON) {
     DAEMON.broadcast('daemonIdChanged', {daemonId: socket.id});
   });
 
-  socket.on('event', function (data) {
+  socket.on('event', function(data) {
     debug(data);
   });
 
-  socket.on('localArchives', function (data) {
+  socket.on('localArchives', function(data) {
     DAEMON.broadcast('localArchives', data);
   });
 
-  socket.on('schedulerArchives', function (data) {
+  socket.on('schedulerArchives', function(data) {
     DAEMON.broadcast('schedulerArchives', data);
   });
 
-  socket.on('clearCache', function (data) {
+  socket.on('clearCache', function(data) {
     // debug(data)
     if (SECC.daemon.cache) {
-      redisClient.flushdb(function (err, didSucceed) {
+      redisClient.flushdb(function(err, didSucceed) {
         debug('redis flushed : %s', didSucceed);
       });
     }
   });
 
-  socket.on('disconnect', function () {
+  socket.on('disconnect', function() {
     console.log('secc-scheduler disconnected.');
 
     if (DAEMON.loadReportTimer)

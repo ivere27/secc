@@ -10,25 +10,25 @@ var zlib = require('zlib');
 var compile = require('../lib/compile.js');
 var utils = require('../lib/utils.js');
 
-module.exports = function (express, SECC, DAEMON) {
+module.exports = function(express, SECC, DAEMON) {
   var router = express.Router();
 
   var Archives = DAEMON.Archives;
   var redisClient = DAEMON.redisClient;
 
-  var compileWrapper = function (req, res, archive, options) {
+  var compileWrapper = function(req, res, archive, options) {
     var jobId = req.headers['secc-jobid'] || null;
     if (jobId) DAEMON.worker.emitToScheduler('compileBefore', { jobId: jobId });
 
     var contentEncoding = req.headers['content-encoding'];
-    var options = options || {};
+    options = options || {};
     options.compiler = archive.compiler;
     options.driver = req.headers['secc-driver'] || archive.compiler;
 
     try {
       options.argv = [];
       options.argv = JSON.parse(req.headers['secc-argv']);
-    } catch(e) {}
+    } catch (e) {}
 
     var output;
 
@@ -58,17 +58,17 @@ module.exports = function (express, SECC, DAEMON) {
 
     var compilePipeStream = new compile.CompileStream(options);
 
-    compilePipeStream.on('cacheStored', function (data) {
+    compilePipeStream.on('cacheStored', function(data) {
       DAEMON.worker.emitToScheduler('cacheStored', data);
     });
 
-    compilePipeStream.on('error', function (err) {
+    compilePipeStream.on('error', function(err) {
       debug(err);
       this.cleanup();
       res.status(400).send(err.message);
     });
 
-    compilePipeStream.on('finish', function (err, stdout, stderr, code, outArchive) {
+    compilePipeStream.on('finish', function(err, stdout, stderr, code, outArchive) {
       if (stdout) res.setHeader('secc-stdout', querystring.escape(stdout));
       if (stderr) res.setHeader('secc-stderr', querystring.escape(stderr));
       if (code || code == 0) res.setHeader('secc-code', code);
@@ -98,18 +98,19 @@ module.exports = function (express, SECC, DAEMON) {
         : (contentEncoding === 'deflate'
           ? zlib.createInflate()
           : stream.PassThrough())
-    ).on('error', function (err) {
+    ).on('error', function(err) {
       compilePipeStream.emit('error', err);
     }).pipe(compilePipeStream);
   };
 
-  router.post('/:archiveId', function (req, res) {
+  router.post('/:archiveId', function(req, res) {
+    var archive, options;
     var jobId = req.headers['secc-jobid'] || null;
     var archiveId = req.params.archiveId;
 
     if (Archives.localArchives.hasOwnProperty(archiveId)) {
-      var archive = Archives.localArchives[archiveId];
-      var options = {
+      archive = Archives.localArchives[archiveId];
+      options = {
         buildNative: true,
         archiveId: archiveId
       };
@@ -117,7 +118,7 @@ module.exports = function (express, SECC, DAEMON) {
       return compileWrapper(req, res, archive, options);
     }
 
-    var archive = utils.getArchiveInArray(Archives.schedulerArchives, archiveId);
+    archive = utils.getArchiveInArray(Archives.schedulerArchives, archiveId);
 
     // check exists in Archives.schedulerArchives
     if (!utils.archiveExistsInArray(Archives.schedulerArchives, archiveId)) {
@@ -147,7 +148,7 @@ module.exports = function (express, SECC, DAEMON) {
       return res.status(400).send('archiveId is not installed.');
     }
 
-    var options = {
+    options = {
       buildNative: false,
       archiveId: archive.archiveId,
       buildRoot: path.join(SECC.runPath, 'preprocessed', archive.archiveId)

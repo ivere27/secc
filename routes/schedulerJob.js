@@ -6,7 +6,7 @@ var path = require('path');
 var utils = require('../lib/utils');
 var environment = require('../lib/environment');
 
-module.exports = function (express, io, SECC, SCHEDULER) {
+module.exports = function(express, io, SECC, SCHEDULER) {
   var router = express.Router();
 
   var am = SCHEDULER.am;
@@ -14,11 +14,12 @@ module.exports = function (express, io, SECC, SCHEDULER) {
   var dm = SCHEDULER.dm;
   var jm = SCHEDULER.jm;
 
-  router.get('/', function (req, res) {
+  router.get('/', function(req, res) {
     res.json(jm.jobList());
   });
 
-  router.post('/new', function (req, res) {
+  router.post('/new', function(req, res) {
+    var bestDaemonId, data;
     var json = req.body;
     debug('/job/new request fired!!');
     debug(json);
@@ -111,7 +112,7 @@ module.exports = function (express, io, SECC, SCHEDULER) {
       debug('cache available daemon list');
       debug(candidateDaemonIds);
       if (candidateDaemonIds.length > 0) {
-        var bestDaemonId = candidateDaemonIds[Math.floor(Math.random() * candidateDaemonIds.length)];
+        bestDaemonId = candidateDaemonIds[Math.floor(Math.random() * candidateDaemonIds.length)];
         debug('use remote cache. %s', bestDaemonId);
         // debug(dm.getDaemonInfo(bestDaemonId))
 
@@ -125,13 +126,13 @@ module.exports = function (express, io, SECC, SCHEDULER) {
           source: path.basename(job.sourcePath)
         });
 
-        var data = {
+        data = {
           jobId: job.id,
           local: false,
           cache: true,
           cross: false,
           daemon: dm.getDaemonInfo(bestDaemonId),
-        archive: archiveInfo};
+          archive: archiveInfo};
 
         if (req.headers['accept'] === 'text/plain')
           return res.send(utils.ObjectToText(data));
@@ -154,7 +155,7 @@ module.exports = function (express, io, SECC, SCHEDULER) {
     debug('daemon list');
     debug(candidateDaemons);
     if (Object.keys(candidateDaemons).length > 0) {
-      var bestDaemonId = Object.keys(candidateDaemons)[Math.floor(Math.random() * Object.keys(candidateDaemons).length)];
+      bestDaemonId = Object.keys(candidateDaemons)[Math.floor(Math.random() * Object.keys(candidateDaemons).length)];
       debug('build remote. %s', bestDaemonId);
       // debug(dm.getDaemonInfo(bestDaemonId))
 
@@ -170,7 +171,7 @@ module.exports = function (express, io, SECC, SCHEDULER) {
         source: path.basename(job.sourcePath)
       });
 
-      var data = {
+      data = {
         jobId: job.id,
         local: false,
         cache: false,
@@ -189,7 +190,7 @@ module.exports = function (express, io, SECC, SCHEDULER) {
 
     // no available daemon.
     jm.removeJob(job.id);
-    var data = {
+    data = {
       local: true,
       error: { message: 'no available daemon'}
     };
