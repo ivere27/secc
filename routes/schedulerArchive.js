@@ -95,16 +95,16 @@ module.exports = function(express, io, SECC, SCHEDULER) {
   });
 
   router.post('/', function(req, res) {
+    var archive = {};
     try {
-      var archive = JSON.parse(req.body.archive);
+      archive = JSON.parse(req.body.archive);
     } catch (e) {
       debug('req.body.archive is not a json string. not serializable.');
     }
 
     // check the input data.
-    // FIXME : need to check archive data type.
     try {
-      if (archive.platform === undefined
+      if ( archive.platform === undefined
         || archive.arch === undefined
         || archive.compiler === undefined
         || archive.version === undefined
