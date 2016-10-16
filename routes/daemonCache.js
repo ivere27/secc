@@ -17,7 +17,7 @@ module.exports = function(express, SECC, DAEMON) {
     if (!SECC.daemon.cache || !redisClient)
       res.status(400).send('cache is not enabled.');
 
-    var jobId = req.headers['secc-jobid'];
+    var jobId = req.headers['x-secc-jobid'];
     var archiveId = req.params.archiveId;
     var preprocessedHash = req.params.preprocessedHash;
     var argvHash = req.params.argvHash;
@@ -63,9 +63,9 @@ module.exports = function(express, SECC, DAEMON) {
 
       // obj['stdout'] is not stored when it is omited.
       if (obj['info']['stdout'])
-        res.setHeader('secc-stdout', querystring.escape(obj['info']['stdout']));
+        res.setHeader('x-secc-stdout', querystring.escape(obj['info']['stdout']));
       if (obj['info']['stderr'])
-        res.setHeader('secc-stderr', querystring.escape(obj['info']['stderr']));
+        res.setHeader('x-secc-stderr', querystring.escape(obj['info']['stderr']));
 
       debug('hit the cache.');
       debug(metaData);

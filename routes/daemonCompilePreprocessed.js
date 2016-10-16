@@ -17,34 +17,34 @@ module.exports = function(express, SECC, DAEMON) {
   var redisClient = DAEMON.redisClient;
 
   var compileWrapper = function(req, res, archive, options) {
-    var jobId = req.headers['secc-jobid'] || null;
+    var jobId = req.headers['x-secc-jobid'] || null;
     if (jobId) DAEMON.worker.emitToScheduler('compileBefore', { jobId: jobId });
 
     var contentEncoding = req.headers['content-encoding'];
     options = options || {};
     options.compiler = archive.compiler;
-    options.driver = req.headers['secc-driver'] || archive.compiler;
+    options.driver = req.headers['x-secc-driver'] || archive.compiler;
 
     try {
       options.argv = [];
-      options.argv = JSON.parse(req.headers['secc-argv']);
+      options.argv = JSON.parse(req.headers['x-secc-argv']);
     } catch (e) {}
 
     var output;
 
-    if (req.headers['secc-language'] !== undefined)
-      options.language = req.headers['secc-language'];
+    if (req.headers['x-secc-language'] !== undefined)
+      options.language = req.headers['x-secc-language'];
 
-    if (req.headers['secc-filename'] !== undefined)
-      options.fileName = req.headers['secc-filename'];
+    if (req.headers['x-secc-filename'] !== undefined)
+      options.fileName = req.headers['x-secc-filename'];
 
-    if (req.headers['secc-outfile'] !== undefined)
-      options.outfile = req.headers['secc-outfile'];
+    if (req.headers['x-secc-outfile'] !== undefined)
+      options.outfile = req.headers['x-secc-outfile'];
 
-    if (req.headers['secc-cross'] !== undefined)
-      options.cross = (req.headers['secc-cross'] == 'true') ? true : false;
-    if (req.headers['secc-target'] !== undefined)
-      options.target = req.headers['secc-target'];
+    if (req.headers['x-secc-cross'] !== undefined)
+      options.cross = (req.headers['x-secc-cross'] == 'true') ? true : false;
+    if (req.headers['x-secc-target'] !== undefined)
+      options.target = req.headers['x-secc-target'];
 
     // using stdin pipe
     options.usingPipe = true;
@@ -69,9 +69,9 @@ module.exports = function(express, SECC, DAEMON) {
     });
 
     compilePipeStream.on('finish', function(err, stdout, stderr, code, outArchive) {
-      if (stdout) res.setHeader('secc-stdout', querystring.escape(stdout));
-      if (stderr) res.setHeader('secc-stderr', querystring.escape(stderr));
-      if (code || code == 0) res.setHeader('secc-code', code);
+      if (stdout) res.setHeader('x-secc-stdout', querystring.escape(stdout));
+      if (stderr) res.setHeader('x-secc-stderr', querystring.escape(stderr));
+      if (code || code == 0) res.setHeader('x-secc-code', code);
 
       if (err) {
         // FIXME : require error reporting.
@@ -105,7 +105,7 @@ module.exports = function(express, SECC, DAEMON) {
 
   router.post('/:archiveId', function(req, res) {
     var archive, options;
-    var jobId = req.headers['secc-jobid'] || null;
+    var jobId = req.headers['x-secc-jobid'] || null;
     var archiveId = req.params.archiveId;
 
     if (Archives.localArchives.hasOwnProperty(archiveId)) {

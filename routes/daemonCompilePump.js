@@ -20,31 +20,31 @@ module.exports = function(express, SECC, DAEMON) {
   var redisClient = DAEMON.redisClient;
 
   var compileWrapper = function(req, res, archive, options) {
-    var jobId = req.headers['secc-jobid'] || null;
+    var jobId = req.headers['x-secc-jobid'] || null;
     if (jobId) DAEMON.worker.emitToScheduler('compileBefore', { jobId: jobId });
 
     options = options || {};
     options.compiler = archive.compiler;
-    options.driver = req.headers['secc-driver'] || archive.compiler;
+    options.driver = req.headers['x-secc-driver'] || archive.compiler;
 
     try {
       options.argv = [];
-      options.argv = JSON.parse(req.headers['secc-argv']);
+      options.argv = JSON.parse(req.headers['x-secc-argv']);
     } catch (e) {}
 
-    if (req.headers['secc-language'] !== undefined)
-      options.language = req.headers['secc-language'];
+    if (req.headers['x-secc-language'] !== undefined)
+      options.language = req.headers['x-secc-language'];
 
-    if (req.headers['secc-filename'] !== undefined)
-      options.fileName = req.headers['secc-filename'];
+    if (req.headers['x-secc-filename'] !== undefined)
+      options.fileName = req.headers['x-secc-filename'];
 
-    if (req.headers['secc-outfile'] !== undefined)
-      options.outfile = req.headers['secc-outfile'];
+    if (req.headers['x-secc-outfile'] !== undefined)
+      options.outfile = req.headers['x-secc-outfile'];
 
-    if (req.headers['secc-cross'] !== undefined)
-      options.cross = (req.headers['secc-cross'] == 'true') ? true : false;
-    if (req.headers['secc-target'] !== undefined)
-      options.target = req.headers['secc-target'];
+    if (req.headers['x-secc-cross'] !== undefined)
+      options.cross = (req.headers['x-secc-cross'] == 'true') ? true : false;
+    if (req.headers['x-secc-target'] !== undefined)
+      options.target = req.headers['x-secc-target'];
 
     // using stdin pipe. NOPE! it's pump mode.
     options.usingPipe = false;
@@ -64,9 +64,9 @@ module.exports = function(express, SECC, DAEMON) {
 
     compilePumpStream.on('finish', function(err, stdout, stderr, code, outArchive) {
       // console.log('finish')
-      if (stdout) res.setHeader('secc-stdout', querystring.escape(stdout));
-      if (stderr) res.setHeader('secc-stderr', querystring.escape(stderr));
-      if (code || code == 0) res.setHeader('secc-code', code);
+      if (stdout) res.setHeader('x-secc-stdout', querystring.escape(stdout));
+      if (stderr) res.setHeader('x-secc-stderr', querystring.escape(stderr));
+      if (code || code == 0) res.setHeader('x-secc-code', code);
 
       if (err) {
         debug('compilePumpStream compile ERROR!!');
@@ -88,7 +88,7 @@ module.exports = function(express, SECC, DAEMON) {
 
   router.post('/:archiveId/:projectId/filecheck', function(req, res) {
     debug('/:archiveId/:projectId/filecheck');
-    var jobId = req.headers['secc-jobid'] || null;
+    var jobId = req.headers['x-secc-jobid'] || null;
     var archiveId = req.params.archiveId;
     var projectId = req.params.projectId;
     var clientIp = req.connection.remoteAddress;
@@ -139,7 +139,7 @@ module.exports = function(express, SECC, DAEMON) {
   });
 
   router.post('/:archiveId/:projectId', function(req, res) {
-    var jobId = req.headers['secc-jobid'] || null;
+    var jobId = req.headers['x-secc-jobid'] || null;
     var archiveId = req.params.archiveId;
     var projectId = req.params.projectId;
     var clientIp = req.connection.remoteAddress;
