@@ -1,7 +1,7 @@
 {
   "name": "secc",
   "description": "Distributed compiler with modern web technology",
-  "version": "0.2.112",
+  "version": "0.2.121",
   "author": {
     "name": "HoYong Jung",
     "email": ""
@@ -37,8 +37,8 @@
     "morgan" : "1.6.1",
     "multer" : "1.0.3",
     "redis" : "2.0.1",
-    "socket.io" : "1.3.6",
-    "socket.io-client" : "1.3.6",
+    "socket.io" : "1.7.2",
+    "socket.io-client" : "1.7.2",
     "tar" : "2.2.1",
     "tar-stream" : "1.2.1"
   }
