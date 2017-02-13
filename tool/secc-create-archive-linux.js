@@ -169,6 +169,12 @@ async.series([
         if (addList[filePath]['fileStdout'].indexOf('ELF') !== -1) {
           addList[filePath]['type'] = 'ELF';
           callChildProcess('ldd ' + realpath, function(err, stdout, stderr) {
+            if ( stdout.indexOf('statically linked') !== -1
+              || stdout.indexOf('not a dynamic executable') !== -1) {
+              addList[filePath]['lddStdout'] = '';
+              return cb(null);
+            }
+
             if (err) throw cb(err);
 
             addList[filePath]['lddStdout'] = stdout;
@@ -190,6 +196,10 @@ async.series([
   function(callback) {
     async.eachSeries(Object.keys(addList), function(filePath, cb) {
       if (addList[filePath]['type'] === 'ELF') {
+        if (addList[filePath]['lddStdout'].trim() == '') {
+          return cb(null);
+        }
+
         var arr = addList[filePath]['lddStdout'].trim().split('\n');
         arr.map(function(dependency) {
           var arr = dependency.trim().split(/\s+/);
@@ -324,6 +334,8 @@ async.series([
       if (addList[filePath]['type'] === 'ELF') {
         console.log('strip %s', tempPath);
         callChildProcess('strip -s ' + tempPath, function(err, stdout, stderr) {
+          if (stdout.indexOf('Unable to recognise the format of the input file') != 0)
+            return cb(null);  // known error
           if (err) return cb(err);
           cb(null);
         });
