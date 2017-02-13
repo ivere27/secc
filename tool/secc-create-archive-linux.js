@@ -199,7 +199,7 @@ async.series([
           } else if (arr.length === 3) {
             addFileList.push(arr[0]);
           } else if (arr.length === 4) {
-            addFileList.push(arr[2]);
+            addFileList.push(path.isAbsolute(arr[0]) ? arr[0] : arr[2]);
           } else {
             console.error(addList[filePath]);
             throw new TypeError('incorrect lddStdout length');
