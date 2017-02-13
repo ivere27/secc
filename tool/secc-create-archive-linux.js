@@ -226,6 +226,10 @@ async.series([
       return item.indexOf('linux-vdso.so') === -1;
     });
 
+    addFileList = addFileList.filter(function(item, pos, self) {
+      return item.indexOf('linux-gate.so.1') === -1;
+    });
+
     callback(null);
   },
   // re-arrange. addFileList to addList
